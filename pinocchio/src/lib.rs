@@ -39,7 +39,8 @@ mod campaign {
     pub const RESERVED: usize = 115;
     pub const PAID: usize = 123;
     pub const BUMP: usize = 131;
-    pub const LEN: usize = 132;
+    pub const VAULT: usize = 132;
+    pub const LEN: usize = 164;
 }
 
 // Affiliate: tag | campaign | wallet | pending | earned | bump
@@ -143,20 +144,32 @@ fn token_program(a: &AccountView) -> ProgramResult {
     Ok(())
 }
 
-fn ata_address(wallet: &Address, token_program: &Address, mint: &Address) -> Address {
-    Address::find_program_address(
-        &[wallet.as_ref(), token_program.as_ref(), mint.as_ref()],
-        &ATA_PROGRAM,
-    )
-    .0
-}
-
-/// The campaign's vault: the canonical ATA of (campaign, mint).
-fn vault_amount(vault: &AccountView, campaign: &AccountView, mint: &Address, tp: &Address) -> R<u64> {
-    if vault.address() != &ata_address(campaign.address(), tp, mint) || !vault.owned_by(tp) {
+/// The campaign's vault, whose address is fixed in the campaign at creation.
+fn vault_amount(vault: &AccountView, camp: &[u8]) -> R<u64> {
+    if key(camp, campaign::VAULT) != *vault.address().as_array() {
         return fail(CommishError::WrongAccount);
     }
     Ok(rd64(&vault.try_borrow()?, 64))
+}
+
+/// A token account that must belong to `owner` (created by the ATA program
+/// on first use).
+#[allow(clippy::too_many_arguments)]
+fn payout_account(
+    payer: &AccountView,
+    ata: &AccountView,
+    owner: &AccountView,
+    mint: &AccountView,
+    system: &AccountView,
+    tp: &AccountView,
+) -> ProgramResult {
+    if ata.data_len() == 0 {
+        return create_ata(payer, ata, owner, mint, system, tp);
+    }
+    if !ata.owned_by(tp.address()) || key(&ata.try_borrow()?, 32) != *owner.address().as_array() {
+        return fail(CommishError::WrongAccount);
+    }
+    Ok(())
 }
 
 fn mint_decimals(mint: &AccountView, tp: &Address) -> R<u8> {
@@ -166,10 +179,13 @@ fn mint_decimals(mint: &AccountView, tp: &Address) -> R<u8> {
     Ok(mint.try_borrow()?[44])
 }
 
+/// Creates a PDA. `invoke_signed` only grants the new account its signature
+/// when `seeds || bump` derive to its address, so this also verifies it.
 fn create_pda(
     payer: &AccountView,
     target: &AccountView,
     space: usize,
+    owner: &Address,
     seeds: &[&[u8]],
     bump: u8,
 ) -> ProgramResult {
@@ -180,7 +196,7 @@ fn create_pda(
     }
     s[seeds.len()] = Seed::from(&bump);
     let signer = Signer::from(&s[..=seeds.len()]);
-    CreateAccount::with_minimum_balance(payer, target, space as u64, &ID, None)?
+    CreateAccount::with_minimum_balance(payer, target, space as u64, owner, None)?
         .invoke_signed(&[signer])
 }
 
@@ -191,12 +207,8 @@ fn create_ata(
     mint: &AccountView,
     system: &AccountView,
     tp: &AccountView,
-    idempotent: bool,
 ) -> ProgramResult {
-    if ata.address() != &ata_address(wallet.address(), tp.address(), mint.address()) {
-        return fail(CommishError::WrongAccount);
-    }
-    let data = [idempotent as u8];
+    let data = [1u8]; // CreateIdempotent
     let metas = [
         InstructionAccount::writable_signer(payer.address()),
         InstructionAccount::writable(ata.address()),
@@ -266,7 +278,7 @@ pub fn process_instruction(
     let (tag, args) = data.split_first().ok_or(ProgramError::InvalidInstructionData)?;
     match tag {
         0 => create_campaign(accounts, args),
-        1 => join_campaign(accounts),
+        1 => join_campaign(accounts, args),
         2 => record_sale(accounts, args),
         3 => cancel_commission(accounts),
         4 => release(accounts),
@@ -280,13 +292,14 @@ fn args<const N: usize>(a: &[u8]) -> R<&[u8; N]> {
     a.try_into().map_err(|_| ProgramError::InvalidInstructionData)
 }
 
-/// 0. brand(s,w) mint campaign(w) vault(w) token_program ata_program system
+/// 0. brand(s,w) mint campaign(w) vault(w) token_program system
 /// data: id u64 | commission_bps u16 | hold_seconds i64 | attestor [32]
+///       | campaign_bump u8 | vault_bump u8
 fn create_campaign(accounts: &mut [AccountView], a: &[u8]) -> ProgramResult {
-    let [brand, mint, camp, vault, tp, _ata, system, ..] = accounts else {
+    let [brand, mint, camp, vault, tp, _system, ..] = accounts else {
         return Err(ProgramError::NotEnoughAccountKeys);
     };
-    let a = args::<50>(a)?;
+    let a = args::<52>(a)?;
     let id = &a[0..8];
     let bps = u16::from_le_bytes([a[8], a[9]]);
     let hold = i64::from_le_bytes(a[10..18].try_into().unwrap());
@@ -299,12 +312,23 @@ fn create_campaign(accounts: &mut [AccountView], a: &[u8]) -> ProgramResult {
     if !(0..=MAX_HOLD_SECONDS).contains(&hold) {
         return fail(CommishError::InvalidHold);
     }
+    let (bump, vault_bump) = (a[50], a[51]);
     let seeds: [&[u8]; 3] = [b"campaign", brand.address().as_ref(), id];
-    let (pda, bump) = Address::find_program_address(&seeds, &ID);
-    if camp.address() != &pda {
-        return fail(CommishError::WrongAccount);
-    }
-    create_pda(brand, camp, campaign::LEN, &seeds, bump)?;
+    create_pda(brand, camp, campaign::LEN, &ID, &seeds, bump)?;
+
+    // Vault: a token account at PDA ["vault", campaign], owned by the campaign.
+    let vseeds: [&[u8]; 2] = [b"vault", camp.address().as_ref()];
+    create_pda(brand, vault, 165, tp.address(), &vseeds, vault_bump)?;
+    let mut init = [0u8; 33];
+    init[0] = 18; // InitializeAccount3
+    init[1..].copy_from_slice(camp.address().as_ref());
+    let metas = [
+        InstructionAccount::writable(vault.address()),
+        InstructionAccount::readonly(mint.address()),
+    ];
+    let ix = InstructionView { program_id: tp.address(), data: &init, accounts: &metas };
+    invoke_signed(&ix, &[&*vault, &*mint], &[])?;
+
     {
         let mut d = camp.try_borrow_mut()?;
         d[0] = TAG_CAMPAIGN;
@@ -315,23 +339,22 @@ fn create_campaign(accounts: &mut [AccountView], a: &[u8]) -> ProgramResult {
         d[campaign::BPS..campaign::BPS + 2].copy_from_slice(&bps.to_le_bytes());
         d[campaign::HOLD..campaign::HOLD + 8].copy_from_slice(&hold.to_le_bytes());
         d[campaign::BUMP] = bump;
+        d[campaign::VAULT..campaign::VAULT + 32].copy_from_slice(vault.address().as_ref());
     }
-    create_ata(brand, vault, camp, mint, system, tp, false)
+    Ok(())
 }
 
 /// 1. wallet(s,w) campaign affiliate(w) system
-fn join_campaign(accounts: &mut [AccountView]) -> ProgramResult {
+/// data: affiliate_bump u8
+fn join_campaign(accounts: &mut [AccountView], a: &[u8]) -> ProgramResult {
     let [wallet, camp, aff, _system, ..] = accounts else {
         return Err(ProgramError::NotEnoughAccountKeys);
     };
     signer(wallet)?;
     owned(camp, TAG_CAMPAIGN, campaign::LEN)?;
     let seeds: [&[u8]; 3] = [b"affiliate", camp.address().as_ref(), wallet.address().as_ref()];
-    let (pda, bump) = Address::find_program_address(&seeds, &ID);
-    if aff.address() != &pda {
-        return fail(CommishError::WrongAccount);
-    }
-    create_pda(wallet, aff, affiliate::LEN, &seeds, bump)?;
+    let bump = args::<1>(a)?[0];
+    create_pda(wallet, aff, affiliate::LEN, &ID, &seeds, bump)?;
     let mut d = aff.try_borrow_mut()?;
     d[0] = TAG_AFFILIATE;
     d[affiliate::CAMPAIGN..affiliate::CAMPAIGN + 32].copy_from_slice(camp.address().as_ref());
@@ -354,7 +377,7 @@ fn record_sale(accounts: &mut [AccountView], a: &[u8]) -> ProgramResult {
     owned(camp, TAG_CAMPAIGN, campaign::LEN)?;
     owned(aff, TAG_AFFILIATE, affiliate::LEN)?;
 
-    let (bps, hold, reserved, mint) = {
+    let (bps, hold, reserved, balance) = {
         let c = camp.try_borrow()?;
         if key(&c, campaign::ATTESTOR) != *attestor.address().as_array() {
             return fail(CommishError::WrongAttestor);
@@ -363,7 +386,7 @@ fn record_sale(accounts: &mut [AccountView], a: &[u8]) -> ProgramResult {
             u16::from_le_bytes([c[campaign::BPS], c[campaign::BPS + 1]]),
             rd64(&c, campaign::HOLD) as i64,
             rd64(&c, campaign::RESERVED),
-            Address::new_from_array(key(&c, campaign::MINT)),
+            vault_amount(vault, &c)?,
         )
     };
     let wallet = {
@@ -379,7 +402,7 @@ fn record_sale(accounts: &mut [AccountView], a: &[u8]) -> ProgramResult {
     if amount == 0 {
         return fail(CommishError::ZeroCommission);
     }
-    let free = sub(vault_amount(vault, camp, &mint, tp.address())?, reserved)?;
+    let free = sub(balance, reserved)?;
     if free < amount {
         return fail(CommishError::InsufficientBudget);
     }
@@ -390,7 +413,7 @@ fn record_sale(accounts: &mut [AccountView], a: &[u8]) -> ProgramResult {
     if com.address() != &pda {
         return fail(CommishError::WrongAccount);
     }
-    create_pda(attestor, com, commission::LEN, &seeds, bump)?;
+    create_pda(attestor, com, commission::LEN, &ID, &seeds, bump)?;
 
     {
         let mut c = camp.try_borrow_mut()?;
@@ -511,10 +534,9 @@ fn release(accounts: &mut [AccountView]) -> ProgramResult {
     if mint.address() != &mint_key {
         return fail(CommishError::WrongAccount);
     }
-    vault_amount(vault, camp, &mint_key, tp.address())?;
+    vault_amount(vault, &camp.try_borrow()?)?;
     let decimals = mint_decimals(mint, tp.address())?;
-
-    create_ata(cranker, payee_ata, payee, mint, system, tp, true)?;
+    payout_account(cranker, payee_ata, payee, mint, system, tp)?;
     let seeds = [Seed::from(b"campaign"), Seed::from(&brand), Seed::from(&id), Seed::from(&bump)];
     transfer_checked(tp, vault, mint, payee_ata, camp, amount, decimals, &[Signer::from(&seeds)])?;
 
@@ -556,13 +578,15 @@ fn withdraw(accounts: &mut [AccountView], a: &[u8]) -> ProgramResult {
     if mint.address() != &mint_key {
         return fail(CommishError::WrongAccount);
     }
-    let reserved = rd64(&camp.try_borrow()?, campaign::RESERVED);
-    let free = sub(vault_amount(vault, camp, &mint_key, tp.address())?, reserved)?;
+    let free = {
+        let c = camp.try_borrow()?;
+        sub(vault_amount(vault, &c)?, rd64(&c, campaign::RESERVED))?
+    };
     if amount == 0 || amount > free {
         return fail(CommishError::InsufficientBudget);
     }
     let decimals = mint_decimals(mint, tp.address())?;
-    create_ata(brand, brand_ata, brand, mint, system, tp, true)?;
+    payout_account(brand, brand_ata, brand, mint, system, tp)?;
     let seeds = [Seed::from(b"campaign"), Seed::from(&brand_key), Seed::from(&id), Seed::from(&bump)];
     transfer_checked(tp, vault, mint, brand_ata, camp, amount, decimals, &[Signer::from(&seeds)])
 }
