@@ -1,0 +1,21 @@
+[package]
+name = "commish-pinocchio"
+version = "0.2.0"
+description = "Affiliate commissions paid in USDC once the refund window closes (Pinocchio port)"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "commish"
+
+[dependencies]
+pinocchio = { version = "=0.11.2", features = ["cpi"] }
+pinocchio-system = "=0.6.1"
+
+[profile.release]
+overflow-checks = true
+lto = "fat"
+codegen-units = 1
+
+# Standalone: the Anchor workspace at the repo root stays the reference build.
+[workspace]
