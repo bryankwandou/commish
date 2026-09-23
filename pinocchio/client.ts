@@ -37,23 +37,28 @@ const u64 = (n: bigint | number) => {
   return b;
 };
 
-export const campaignPda = (brand: PublicKey, id: bigint) =>
+const campaignPdaBump = (brand: PublicKey, id: bigint) =>
   PublicKey.findProgramAddressSync(
     [Buffer.from("campaign"), brand.toBuffer(), u64(id)],
     PROGRAM_ID,
-  )[0];
-export const affiliatePda = (campaign: PublicKey, wallet: PublicKey) =>
+  );
+export const campaignPda = (brand: PublicKey, id: bigint) => campaignPdaBump(brand, id)[0];
+const vaultPdaBump = (campaign: PublicKey) =>
+  PublicKey.findProgramAddressSync([Buffer.from("vault"), campaign.toBuffer()], PROGRAM_ID);
+const affiliatePdaBump = (campaign: PublicKey, wallet: PublicKey) =>
   PublicKey.findProgramAddressSync(
     [Buffer.from("affiliate"), campaign.toBuffer(), wallet.toBuffer()],
     PROGRAM_ID,
-  )[0];
+  );
+export const affiliatePda = (campaign: PublicKey, wallet: PublicKey) =>
+  affiliatePdaBump(campaign, wallet)[0];
 export const commissionPda = (campaign: PublicKey, hash: Buffer) =>
   PublicKey.findProgramAddressSync(
     [Buffer.from("commission"), campaign.toBuffer(), hash],
     PROGRAM_ID,
   )[0];
-export const vaultAta = (mint: PublicKey, campaign: PublicKey) =>
-  getAssociatedTokenAddressSync(mint, campaign, true);
+/** The campaign vault (a program-derived token account; `mint` kept for call-site symmetry). */
+export const vaultAta = (_mint: PublicKey, campaign: PublicKey) => vaultPdaBump(campaign)[0];
 
 const ix = (keys: [PublicKey, boolean, boolean][], data: Buffer) =>
   new TransactionInstruction({
@@ -69,7 +74,8 @@ const SYS = SystemProgram.programId;
 export const createCampaign = (a: {
   brand: PublicKey; mint: PublicKey; id: bigint; bps: number; hold: number; attestor: PublicKey;
 }) => {
-  const campaign = campaignPda(a.brand, a.id);
+  const [campaign, bump] = campaignPdaBump(a.brand, a.id);
+  const [vault, vaultBump] = vaultPdaBump(campaign);
   const bps = Buffer.alloc(2);
   bps.writeUInt16LE(a.bps);
   const hold = Buffer.alloc(8);
@@ -77,10 +83,9 @@ export const createCampaign = (a: {
   return ix(
     [
       [a.brand, true, true], [a.mint, false, false], [campaign, false, true],
-      [vaultAta(a.mint, campaign), false, true], [TP, false, false],
-      [ATA, false, false], [SYS, false, false],
+      [vault, false, true], [TP, false, false], [SYS, false, false],
     ],
-    Buffer.concat([Buffer.from([0]), u64(a.id), bps, hold, a.attestor.toBuffer()]),
+    Buffer.concat([Buffer.from([0]), u64(a.id), bps, hold, a.attestor.toBuffer(), Buffer.from([bump, vaultBump])]),
   );
 };
 
@@ -88,7 +93,7 @@ export const joinCampaign = (wallet: PublicKey, campaign: PublicKey) =>
   ix(
     [[wallet, true, true], [campaign, false, false],
      [affiliatePda(campaign, wallet), false, true], [SYS, false, false]],
-    Buffer.from([1]),
+    Buffer.from([1, affiliatePdaBump(campaign, wallet)[1]]),
   );
 
 export const recordSale = (a: {
@@ -164,7 +169,7 @@ const rd = (d: Buffer, o: number) => d.readBigUInt64LE(o);
 export const decodeCampaign = (d: Buffer) => ({
   brand: pk(d, 1), attestor: pk(d, 33), mint: pk(d, 65), id: rd(d, 97),
   bps: d.readUInt16LE(105), hold: d.readBigInt64LE(107),
-  reserved: rd(d, 115), paid: rd(d, 123),
+  reserved: rd(d, 115), paid: rd(d, 123), vault: pk(d, 132),
 });
 export const decodeAffiliate = (d: Buffer) => ({
   campaign: pk(d, 1), wallet: pk(d, 33), pending: rd(d, 65), earned: rd(d, 73),
