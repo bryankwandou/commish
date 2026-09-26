@@ -13,12 +13,18 @@
   },
   "dependencies": {
     "@astrojs/node": "^11.1.6",
+    "@astrojs/vercel": "^11.0.11",
     "@solana/kit": "^8.3.0",
+    "@solana/spl-token": "^0.4.15",
+    "@solana/web3.js": "^1.99.0",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.3.4",
     "tailwindcss": "^4.3.3"
   },
   "allowScripts": {
     "esbuild": true
+  },
+  "overrides": {
+    "uuid": "^11.1.0"
   }
 }
