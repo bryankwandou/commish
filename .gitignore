@@ -12,3 +12,6 @@ wallet*.json
 demo-output.json
 commish-db.json
 .surfpool/
+.demo/
+web/dist/
+.devnet-rpc
