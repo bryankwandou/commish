@@ -60,3 +60,21 @@ The suite is the Anchor suite case for case (7 tests) plus 3 early-payout tests.
   non-canonical bump could only be made by the same signer, for itself.
 - The attestor (the brand's order webhook) is trusted to report refunds honestly.
   A buyer of a commission is exposed to that brand's refund behaviour.
+
+## Devnet
+
+Program `F5ZfVzJ9i9bdu18sS3SHjitbvErKrS6XdBYU52Kc8ijW` (44,688 bytes), deployed 2026-09-26.
+Demo campaign `BgXT9chmk44cmkoQznWCbUKf6FmJDX9S7BYQ1VCTCvYC`, run end to end from `web/`:
+
+| Step | Signature | CU |
+|---|---|---:|
+| record_sale | `2X6Td4g8EfCFssJbLXvsGQszEE8LsF7CjFHXRxoUmWezPSqbUkkvRXcTcBoJUgv2y2fYgSm41rDYPkPV8QYYeK6B` | 4,143 |
+| cancel_commission (refund) | `3HDFbGzMz2UAeatXcca3jRnVXJnWpy7K346ghxdw8zU2Yq9NEiVgLf1g3J168yG7y7az9oohmthuitFRdhjEiDpx` | |
+| sell_commission (early payout, 3% discount) | `Cmv5Zz31BL8dRMGfL2gby4edGz8U5myYwhv15CzCQDVTPPqfbrjkqPHvJ8uVvpbYCNReyniuGzahYgRW6vz2ZJL` | |
+| release | `bRv8UZ8kqVSL9Vz9Qf7HbNT5BY2D5f6RkrxEWD1MhaSXJpNPsWaZiszCuqcZssRDuB7uatCV8DCRRs4sfSkUD2J` | 2,695 |
+
+A second release of the same order fails with `NotPending`.
+
+```bash
+cd web && RPC_URL=<devnet rpc> DEMO_PAYER=<funded keypair> npm run dev
+```

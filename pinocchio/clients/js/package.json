@@ -1,0 +1,20 @@
+{
+  "name": "@commish/client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.ts",
+  "files": [
+    "./dist/src",
+    "./dist/types",
+    "./src/"
+  ],
+  "keywords": [],
+  "author": "",
+  "peerDependencies": {
+    "@solana/kit": "^8.3.0"
+  },
+  "dependencies": {
+    "@solana/program-client-core": "^8.3.0"
+  },
+  "type": "module"
+}
