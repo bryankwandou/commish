@@ -63,7 +63,7 @@ import "../styles/global.css";
           const pending = o.status === "Pending";
           const btn = (a: string, label: string, on = true) => `<button ${on ? "" : "disabled"} onclick="act('${a}',{order:'${o.id}'})" class="rounded border border-neutral-700 px-3 py-1 text-sm hover:bg-neutral-800 disabled:opacity-40">${label}</button>`;
           return `<div class="rounded border border-neutral-800 p-3 flex flex-wrap gap-2 items-center justify-between">
-            <div><div class="font-mono text-sm">${o.id}</div>
+            <div><a class="font-mono text-sm underline" target="_blank" rel="noopener" href="https://explorer.solana.com/address/${o.account}?cluster=devnet">order ${o.id.slice(0, 8)}</a>
               <div class="text-xs text-neutral-400 tabular-nums">order ${usd(o.amount)} · commission ${usd(o.commission)} · ${o.status}${o.soldToDesk ? " (sold to desk)" : ""}${pending && o.secondsLeft ? ` · releases in ${o.secondsLeft}s` : ""}</div></div>
             <div class="flex gap-2">${pending ? btn("refund", "Refund") + btn("cashout", `Cash out now (−${s.deskFeePct}%)`, !o.soldToDesk) + btn("release", "Release", o.secondsLeft === 0) : ""}</div>
           </div>`;

@@ -23,11 +23,12 @@ const PAYER = process.env.DEMO_PAYER ?? homedir() + "/.config/solana/id.json";
 
 export const connection = new Connection(RPC, "confirmed");
 const kp = (s: number[]) => Keypair.fromSecretKey(Uint8Array.from(s));
-const payer = kp(JSON.parse(readFileSync(PAYER, "utf8")));
+// On a host without a disk (Vercel) the keys come from env: DEMO_PAYER_KEY and DEMO_KEYS.
+const payer = kp(JSON.parse(process.env.DEMO_PAYER_KEY ?? readFileSync(PAYER, "utf8")));
 
 type Saved = {
   brand: number[]; attestor: number[]; creator: number[]; desk: number[]; mint: number[];
-  id: string; orders: { id: string; amount: number; at: number }[];
+  id: string;
 };
 
 const send = (ixs: TransactionInstruction[], signers: Keypair[] = []) =>
@@ -35,7 +36,8 @@ const send = (ixs: TransactionInstruction[], signers: Keypair[] = []) =>
     commitment: "confirmed",
   });
 
-let saved: Saved | null = existsSync(STATE) ? JSON.parse(readFileSync(STATE, "utf8")) : null;
+let saved: Saved | null = process.env.DEMO_KEYS ? JSON.parse(process.env.DEMO_KEYS)
+  : existsSync(STATE) ? JSON.parse(readFileSync(STATE, "utf8")) : null;
 const save = () => {
   mkdirSync(dirname(STATE), { recursive: true });
   writeFileSync(STATE, JSON.stringify(saved));
@@ -76,7 +78,7 @@ async function ensure(): Promise<Saved> {
     await send([c.joinCampaign(creator.publicKey, campaign)], [creator]);
     saved = {
       brand: [...brand.secretKey], attestor: [...attestor.secretKey], creator: [...creator.secretKey],
-      desk: [...desk.secretKey], mint: [...mint.secretKey], id: id.toString(), orders: [],
+      desk: [...desk.secretKey], mint: [...mint.secretKey], id: id.toString(),
     };
     save();
     return saved;
@@ -93,6 +95,11 @@ async function ctx() {
   return { s, brand, attestor, creator, desk, mint, campaign, affiliate };
 }
 
+const hex = (h: string) => {
+  if (!/^[0-9a-f]{64}$/.test(h)) throw new Error("bad order");
+  return Buffer.from(h, "hex");
+};
+
 const balance = async (owner: PublicKey, mint: PublicKey) => {
   const ata = getAssociatedTokenAddressSync(mint, owner);
   const acc = await connection.getAccountInfo(ata, "confirmed");
@@ -101,39 +108,36 @@ const balance = async (owner: PublicKey, mint: PublicKey) => {
 
 export async function buy(amount: number) {
   const x = await ctx();
-  const id = `order-${Date.now()}`;
-  const sig = await send([c.recordSale({
+  if (!(amount > 0 && amount <= 10_000)) throw new Error("amount must be between 0 and 10,000");
+  return send([c.recordSale({
     attestor: x.attestor.publicKey, campaign: x.campaign, mint: x.mint, affiliate: x.affiliate,
-    hash: c.orderHash(id), orderAmount: Math.round(amount * USDC),
+    hash: c.orderHash(`order-${Date.now()}-${Math.random()}`), orderAmount: Math.round(amount * USDC),
   })], [x.attestor]);
-  x.s.orders.unshift({ id, amount, at: Date.now() });
-  save();
-  return sig;
 }
 
 export async function refund(order: string) {
   const x = await ctx();
   return send([c.cancelCommission({
-    attestor: x.attestor.publicKey, campaign: x.campaign, affiliate: x.affiliate, hash: c.orderHash(order),
+    attestor: x.attestor.publicKey, campaign: x.campaign, affiliate: x.affiliate, hash: hex(order),
   })], [x.attestor]);
 }
 
 export async function cashOut(order: string) {
   const x = await ctx();
-  const com = c.decodeCommission((await connection.getAccountInfo(c.commissionPda(x.campaign, c.orderHash(order))))!.data);
+  const com = c.decodeCommission((await connection.getAccountInfo(c.commissionPda(x.campaign, hex(order))))!.data);
   const price = (com.amount * BigInt(10_000 - DESK_FEE_BPS)) / 10_000n;
   return send([c.sellCommission({
     seller: x.creator.publicKey, buyer: x.desk.publicKey, campaign: x.campaign, affiliate: x.affiliate,
-    mint: x.mint, hash: c.orderHash(order), price,
+    mint: x.mint, hash: hex(order), price,
   })], [x.creator, x.desk]);
 }
 
 export async function release(order: string) {
   const x = await ctx();
-  const com = c.decodeCommission((await connection.getAccountInfo(c.commissionPda(x.campaign, c.orderHash(order))))!.data);
+  const com = c.decodeCommission((await connection.getAccountInfo(c.commissionPda(x.campaign, hex(order))))!.data);
   return send([c.release({
     cranker: payer.publicKey, campaign: x.campaign, mint: x.mint, affiliate: x.affiliate,
-    hash: c.orderHash(order), payee: com.payee,
+    hash: hex(order), payee: com.payee,
   })]);
 }
 
@@ -144,8 +148,11 @@ export async function state() {
   const aff = c.decodeAffiliate(affAcc!.data);
   const vaultAcc = await connection.getAccountInfo(camp.vault);
   const vault = Number(unpackAccount(camp.vault, vaultAcc!).amount) / USDC;
-  const pdas = x.s.orders.map((o) => c.commissionPda(x.campaign, c.orderHash(o.id)));
-  const coms = pdas.length ? await connection.getMultipleAccountsInfo(pdas) : [];
+  const coms = (await connection.getProgramAccounts(c.PROGRAM_ID, {
+    commitment: "confirmed",
+    filters: [{ dataSize: 155 }, { memcmp: { offset: 1, bytes: x.campaign.toBase58() } }],
+  })).map((a) => ({ pubkey: a.pubkey, d: c.decodeCommission(a.account.data) }))
+    .sort((a, b) => Number(b.d.releaseAt) - Number(a.d.releaseAt)).slice(0, 20);
   const now = Math.floor(Date.now() / 1000);
   return {
     rpc: RPC.includes("devnet") ? "devnet" : RPC.includes("mainnet") ? "mainnet" : "localnet",
@@ -158,16 +165,13 @@ export async function state() {
     budget: { vault, reserved: Number(camp.reserved) / USDC, free: vault - Number(camp.reserved) / USDC, paid: Number(camp.paid) / USDC },
     creator: { wallet: x.creator.publicKey.toBase58(), usdc: await balance(x.creator.publicKey, x.mint), pending: Number(aff.pending) / USDC, earned: Number(aff.earned) / USDC },
     desk: { wallet: x.desk.publicKey.toBase58(), usdc: await balance(x.desk.publicKey, x.mint) },
-    orders: x.s.orders.map((o, i) => {
-      const d = coms[i] ? c.decodeCommission(coms[i]!.data) : null;
-      return {
-        id: o.id, amount: o.amount,
-        commission: d ? Number(d.amount) / USDC : 0,
-        status: d?.status ?? "Unknown",
-        soldToDesk: d ? d.payee.equals(x.desk.publicKey) : false,
-        secondsLeft: d ? Math.max(0, d.releaseAt - now) : 0,
-        account: pdas[i].toBase58(),
-      };
-    }),
+    orders: coms.map(({ pubkey, d }) => ({
+      id: Buffer.from(d.orderHash).toString("hex"), amount: Number(d.orderAmount) / USDC,
+      commission: Number(d.amount) / USDC,
+      status: d.status,
+      soldToDesk: d.payee.equals(x.desk.publicKey),
+      secondsLeft: Math.max(0, Number(d.releaseAt) - now),
+      account: pubkey.toBase58(),
+    })),
   };
 }

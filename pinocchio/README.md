@@ -64,6 +64,8 @@ The suite is the Anchor suite case for case (7 tests) plus 3 early-payout tests.
 ## Devnet
 
 Program `F5ZfVzJ9i9bdu18sS3SHjitbvErKrS6XdBYU52Kc8ijW` (44,688 bytes), deployed 2026-09-26.
+Live demo: https://commish-rosy.vercel.app (devnet, 30-second refund window).
+
 Demo campaign `BgXT9chmk44cmkoQznWCbUKf6FmJDX9S7BYQ1VCTCvYC`, run end to end from `web/`:
 
 | Step | Signature | CU |
