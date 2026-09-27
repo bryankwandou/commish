@@ -21,12 +21,15 @@ export async function generateMetadata({ params }: LayoutProps<"/[lang]">): Prom
     metadataBase: new URL(SITE_URL),
     title: { default: t.meta.title, template: "%s · Commish" },
     description: t.meta.description,
-    alternates: {
-      canonical: `/${lang}`,
-      languages: Object.fromEntries(locales.map((l) => [l, `/${l}`])),
+    openGraph: {
+      title: t.meta.title,
+      description: t.meta.description,
+      siteName: "Commish",
+      type: "website",
+      locale: lang,
+      images: [{ url: "/og.png", width: 1200, height: 630, alt: t.meta.title }],
     },
-    openGraph: { title: t.meta.title, description: t.meta.description, siteName: "Commish", type: "website", locale: lang },
-    twitter: { card: "summary_large_image", title: t.meta.title, description: t.meta.description },
+    twitter: { card: "summary_large_image", title: t.meta.title, description: t.meta.description, images: ["/og.png"] },
   };
 }
 

@@ -266,7 +266,7 @@ describe("recording sales", () => {
     const s = await setup();
     const mallory = await signer();
     const forged = { ...s, attestor: mallory };
-    const x = await sale(forged, "order-fake", USDC(100));
+    const x = await sale(forged, "order-forged", USDC(100));
     await fails(6004, [x.instruction], x.signers);
   });
 

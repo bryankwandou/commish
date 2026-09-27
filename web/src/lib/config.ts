@@ -1,6 +1,6 @@
 /** Public configuration, readable in the browser. */
 export const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || "https://api.mainnet-beta.solana.com";
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://commish.vercel.app";
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://getcommish.vercel.app";
 export const REPO_URL = "https://github.com/bryankwandou/commish";
 export const PROGRAM_ADDRESS = "CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB";
 export const EXPLORER = "https://explorer.solana.com";
