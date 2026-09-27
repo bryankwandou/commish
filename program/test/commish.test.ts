@@ -22,6 +22,7 @@ import {
   CAMPAIGN_LEN,
   COMMISSION_LEN,
   PROGRAM_ID,
+  TREASURY,
   TOKEN_PROGRAM,
   cancelIx,
   commissionFor,
@@ -44,6 +45,7 @@ const USDC = (n: number) => BigInt(Math.round(n * 1_000_000));
 let svm: LiteSVM;
 let mint: Address;
 let otherMint: Address;
+let treasuryAta: Address;
 const cu: Record<string, bigint> = {};
 
 // ------------------------------------------------------------------ helpers
@@ -197,6 +199,7 @@ before(async () => {
   otherMint = (await generateKeyPairSigner()).address;
   setMint(mint);
   setMint(otherMint);
+  treasuryAta = await fund(TREASURY, 0n);
 });
 
 describe("campaign", () => {
@@ -314,17 +317,43 @@ describe("brand withdrawals", () => {
 });
 
 describe("release", () => {
+  test("takes exactly 1% for the treasury, rounded down", async () => {
+    const s = await setup();
+    const x = await sale(s, "fee-1", USDC(123.4567)); // 12.34567 -> fee 0.123456
+    await ok([x.instruction], x.signers);
+    warp(7n * DAY);
+    const before = balance(treasuryAta);
+    await ok([releaseIx({ treasuryToken: treasuryAta, campaign: s.campaign, vault: s.vault, commission: x.commission, payeeToken: s.creatorAta, rentPayer: s.attestor.address })], [s.creator]);
+    const amount = USDC(12.34567);
+    const fee = amount / 100n;
+    assert.equal(balance(treasuryAta) - before, fee);
+    assert.equal(balance(s.creatorAta), amount - fee);
+    assert.equal(campaignOf(s.campaign).paid, amount, "paid counts the full commission");
+  });
+
+  test("the fee cannot be redirected", async () => {
+    const s = await setup();
+    const x = await sale(s, "fee-2", USDC(100));
+    await ok([x.instruction], x.signers);
+    warp(7n * DAY);
+    const mallory = await signer();
+    const loot = await fund(mallory.address, 0n);
+    await fails(6006, [releaseIx({ treasuryToken: loot, campaign: s.campaign, vault: s.vault, commission: x.commission, payeeToken: s.creatorAta, rentPayer: s.attestor.address })], [mallory]);
+    const wrongMint = await fund(TREASURY, 0n, otherMint);
+    await fails(6003, [releaseIx({ treasuryToken: wrongMint, campaign: s.campaign, vault: s.vault, commission: x.commission, payeeToken: s.creatorAta, rentPayer: s.attestor.address })], [mallory]);
+  });
+
   test("pays the creator once the refund window closes, and refunds the rent", async () => {
     const s = await setup();
     const x = await sale(s, "r-1", USDC(500)); // 50
     await ok([x.instruction], x.signers);
-    const release = releaseIx({ campaign: s.campaign, vault: s.vault, commission: x.commission, payeeToken: s.creatorAta, rentPayer: s.attestor.address });
+    const release = releaseIx({ treasuryToken: treasuryAta, campaign: s.campaign, vault: s.vault, commission: x.commission, payeeToken: s.creatorAta, rentPayer: s.attestor.address });
     const cranker = await signer();
     await fails(6011, [release], [cranker]);
     warp(7n * DAY);
     const rentBefore = svm.getBalance(s.attestor.address)!;
     await ok([release], [cranker], "release");
-    assert.equal(balance(s.creatorAta), USDC(50));
+    assert.equal(balance(s.creatorAta), USDC(49.5), "creator gets 50 minus the 1% fee");
     assert.equal(commissionOf(x.commission), null, "commission account is closed");
     assert.equal(svm.getBalance(s.attestor.address)! - rentBefore, rentCommission());
     const c = campaignOf(s.campaign);
@@ -339,9 +368,9 @@ describe("release", () => {
     warp(7n * DAY);
     const mallory = await signer();
     const loot = await fund(mallory.address, 0n);
-    await fails(6013, [releaseIx({ campaign: s.campaign, vault: s.vault, commission: x.commission, payeeToken: loot, rentPayer: s.attestor.address })], [mallory]);
+    await fails(6013, [releaseIx({ treasuryToken: treasuryAta, campaign: s.campaign, vault: s.vault, commission: x.commission, payeeToken: loot, rentPayer: s.attestor.address })], [mallory]);
     const wrongMint = await fund(s.creator.address, 0n, otherMint);
-    await fails(6003, [releaseIx({ campaign: s.campaign, vault: s.vault, commission: x.commission, payeeToken: wrongMint, rentPayer: s.attestor.address })], [mallory]);
+    await fails(6003, [releaseIx({ treasuryToken: treasuryAta, campaign: s.campaign, vault: s.vault, commission: x.commission, payeeToken: wrongMint, rentPayer: s.attestor.address })], [mallory]);
   });
 
   test("the rent goes back to whoever paid it, nobody else", async () => {
@@ -350,7 +379,7 @@ describe("release", () => {
     await ok([x.instruction], x.signers);
     warp(7n * DAY);
     const mallory = await signer();
-    await fails(6006, [releaseIx({ campaign: s.campaign, vault: s.vault, commission: x.commission, payeeToken: s.creatorAta, rentPayer: mallory.address })], [mallory]);
+    await fails(6006, [releaseIx({ treasuryToken: treasuryAta, campaign: s.campaign, vault: s.vault, commission: x.commission, payeeToken: s.creatorAta, rentPayer: mallory.address })], [mallory]);
   });
 
   test("a commission cannot be paid twice", async () => {
@@ -358,10 +387,10 @@ describe("release", () => {
     const x = await sale(s, "r-4", USDC(100));
     await ok([x.instruction], x.signers);
     warp(7n * DAY);
-    const release = releaseIx({ campaign: s.campaign, vault: s.vault, commission: x.commission, payeeToken: s.creatorAta, rentPayer: s.attestor.address });
+    const release = releaseIx({ treasuryToken: treasuryAta, campaign: s.campaign, vault: s.vault, commission: x.commission, payeeToken: s.creatorAta, rentPayer: s.attestor.address });
     await ok([release], [s.creator]);
     await fails(null, [release], [s.creator]);
-    assert.equal(balance(s.creatorAta), USDC(10));
+    assert.equal(balance(s.creatorAta), USDC(9.9));
   });
 
   test("a commission from another campaign cannot drain this vault", async () => {
@@ -370,7 +399,7 @@ describe("release", () => {
     const x = await sale(b, "cross", USDC(100));
     await ok([x.instruction], x.signers);
     warp(7n * DAY);
-    await fails(6006, [releaseIx({ campaign: a.campaign, vault: a.vault, commission: x.commission, payeeToken: b.creatorAta, rentPayer: b.attestor.address })], [b.creator]);
+    await fails(6006, [releaseIx({ treasuryToken: treasuryAta, campaign: a.campaign, vault: a.vault, commission: x.commission, payeeToken: b.creatorAta, rentPayer: b.attestor.address })], [b.creator]);
   });
 });
 
@@ -415,9 +444,9 @@ describe("early payout", () => {
     assert.equal(m.creator, s.creator.address);
     assert.ok(m.sold);
     warp(7n * DAY);
-    await fails(6013, [releaseIx({ campaign: s.campaign, vault: s.vault, commission: x.commission, payeeToken: s.creatorAta, rentPayer: s.attestor.address })], [buyer]);
-    await ok([releaseIx({ campaign: s.campaign, vault: s.vault, commission: x.commission, payeeToken: buyerAta, rentPayer: s.attestor.address })], [buyer]);
-    assert.equal(balance(buyerAta), USDC(500) - price + USDC(100));
+    await fails(6013, [releaseIx({ treasuryToken: treasuryAta, campaign: s.campaign, vault: s.vault, commission: x.commission, payeeToken: s.creatorAta, rentPayer: s.attestor.address })], [buyer]);
+    await ok([releaseIx({ treasuryToken: treasuryAta, campaign: s.campaign, vault: s.vault, commission: x.commission, payeeToken: buyerAta, rentPayer: s.attestor.address })], [buyer]);
+    assert.equal(balance(buyerAta), USDC(500) - price + USDC(99));
   });
 
   test("only the current payee can sell, and never above face value", async () => {
@@ -473,6 +502,8 @@ describe("binary", () => {
     const size = statSync(SO).size;
     console.log(`\n  program binary: ${size} bytes`);
     for (const [k, v] of Object.entries(cu)) console.log(`  ${k.padEnd(30)} ${v} CU`);
-    assert.ok(size <= 9_431, `binary is ${size} bytes; the 0.05 SOL deploy budget allows 9,431`);
+    // First deploy (9,296 bytes) fit the 0.05 SOL budget. The 1% fee adds about
+    // 224 bytes, paid once as an upgrade extension (about 0.0012 SOL).
+    assert.ok(size <= 9_600, `binary is ${size} bytes; the upgrade budget allows 9,600`);
   });
 });

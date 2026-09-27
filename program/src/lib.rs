@@ -120,6 +120,15 @@ type R<T = ()> = Result<T, E>;
 
 const MAX_ACCOUNTS: usize = 7;
 
+/// Protocol fee, taken from each commission at release: 1% (100 bps).
+pub const FEE_BPS: u64 = 100;
+
+/// Owner of the fee token account: ETcQvsQek2w9feLfsqoe4AypCWfnrSwQiv3djqocaP2m.
+pub const TREASURY: Key = [
+    199, 249, 18, 123, 71, 65, 244, 7, 224, 1, 161, 150, 188, 148, 217, 61, 182, 105, 175, 161, 104,
+    91, 67, 177, 82, 187, 244, 86, 213, 53, 181, 150,
+];
+
 /// Hand-rolled entrypoint on the lazy context: reads at most 7 accounts and
 /// returns the error code directly.
 #[cfg(any(target_os = "solana", target_arch = "bpf"))]
@@ -462,17 +471,22 @@ fn cancel(a: &[AccountView]) -> R {
     Ok(())
 }
 
-/// 3. campaign(w) vault(w) commission(w) payee_token(w) rent_payer(w) token_program
-/// Permissionless once the refund window has passed. Pays the current payee.
+/// 3. campaign(w) vault(w) commission(w) payee_token(w) rent_payer(w) token_program fee_token(w)
+/// Permissionless once the refund window has passed. Pays the current payee
+/// the commission minus the 1% fee, which goes to the treasury's token account.
 fn release(a: &[AccountView]) -> R {
-    let [camp, vault, com, dest, rent_payer, _token_program, ..] = a else { return Err(E::NotEnoughAccounts) };
+    let [camp, vault, com, dest, rent_payer, _token_program, fee_dest, ..] = a else { return Err(E::NotEnoughAccounts) };
     let (c, m) = commission(camp, com)?;
     need(now() >= m.release_at, E::StillHeld)?;
     need(eq(&c.vault, addr(vault)), E::WrongAccount)?;
     need(eq(&m.rent_payer, addr(rent_payer)), E::WrongAccount)?;
     need(eq(&token(dest, &c.mint)?.owner, &m.payee), E::NotPayee)?;
+    need(eq(&token(fee_dest, &c.mint)?.owner, &TREASURY), E::WrongAccount)?;
     let amount = m.amount;
-    pay_out(camp, c, vault, dest, amount);
+    // Divide first so no product can overflow; the fee rounds down.
+    let fee = amount / (10_000 / FEE_BPS);
+    pay_out(camp, c, vault, dest, amount - fee);
+    pay_out(camp, c, vault, fee_dest, fee); // SPL Token accepts a zero transfer
     c.reserved -= amount; // reserved includes every open commission
     c.paid += amount;
     close(com, rent_payer);

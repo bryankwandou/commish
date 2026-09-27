@@ -99,7 +99,7 @@ export default async function Docs({ params }: PageProps<"/[lang]/docs">) {
               ["0", "create_campaign", "brand", "brand, campaign, vault, mint, system", "id, hold, bps, bump, lamports, attestor"],
               ["1", "record_sale", "attestor, payer", "attestor, payer, campaign, vault, commission, system", "order_hash, order_amount, creator, lamports, bump"],
               ["2", "cancel", "attestor", "attestor, campaign, commission, rent_payer", "none, only before release_at"],
-              ["3", "release", "none", "campaign, vault, commission, payee_token, rent_payer, token_program", "none, only after release_at"],
+              ["3", "release", "none", "campaign, vault, commission, payee_token, rent_payer, token_program, fee_token", "none, only after release_at; pays amount − 1% to the payee and 1% to the treasury"],
               ["4", "withdraw", "brand", "brand, campaign, vault, dest, token_program", "amount ≤ vault − reserved"],
               ["5", "sell", "payee, buyer", "payee, buyer, campaign, commission, buyer_token, payee_token, token_program", "price, 0 < price ≤ amount, before release_at"],
             ]}
@@ -123,7 +123,7 @@ export default async function Docs({ params }: PageProps<"/[lang]/docs">) {
           <H id="security">{s.security}</H>
           <ul className="mb-6 list-disc space-y-2 pl-5 text-muted">
             <li>The attestor is trusted to report real sales. The program cannot tell whether an off-chain order happened; it removes the brand&apos;s ability to delay or claw back a commission once recorded.</li>
-            <li>Funds leave the vault only through <C>release</C> (to the payee&apos;s token account, after the window) and <C>withdraw</C> (the unreserved part, to the brand).</li>
+            <li>Funds leave the vault only through <C>release</C> (to the payee&apos;s token account, after the window, with 1% to the treasury&apos;s token account for the same mint) and <C>withdraw</C> (the unreserved part, to the brand).</li>
             <li>Only the legacy SPL Token program is accepted, and every token account is checked for the campaign&apos;s mint.</li>
             <li>A commission address that already holds lamports makes <C>record_sale</C> fail for that order. Derive order hashes with a key only the attestor holds (<C>orderHash(campaign, orderId, key)</C>, HMAC-SHA256) so nobody can predict the next address and block it; the brand console does this with a key derived from the attestor wallet.</li>
             <li>An order can be recorded again after its commission is paid or cancelled, because the account is closed. Only the attestor can record, so this is the attestor&apos;s responsibility.</li>

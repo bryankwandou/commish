@@ -21,6 +21,15 @@ export const TOKEN_PROGRAM = address("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5D
 export const ATA_PROGRAM = address("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
 export const SYSTEM_PROGRAM = address("11111111111111111111111111111111");
 /** Circle USDC on Solana mainnet (6 decimals). */
+/** Owner of the token account that receives the 1% protocol fee at release. */
+export const TREASURY = address("ETcQvsQek2w9feLfsqoe4AypCWfnrSwQiv3djqocaP2m");
+export const FEE_BPS = 100;
+
+/** What the payee receives at release: the commission minus the 1% fee (rounded down). */
+export function netOfFee(amount: bigint): bigint {
+  return amount - amount / BigInt(10_000 / FEE_BPS);
+}
+
 export const USDC_MINT = address("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 
 export const CAMPAIGN_LEN = 176;
@@ -301,10 +310,11 @@ export function cancelIx(p: { attestor: Address; campaign: Address; commission: 
   };
 }
 
-export function releaseIx(p: { campaign: Address; vault: Address; commission: Address; payeeToken: Address; rentPayer: Address }): Instruction {
+/** `treasuryToken` is the TREASURY's token account for the campaign mint (see findAta). */
+export function releaseIx(p: { campaign: Address; vault: Address; commission: Address; payeeToken: Address; rentPayer: Address; treasuryToken: Address }): Instruction {
   return {
     programAddress: PROGRAM_ID,
-    accounts: [w(p.campaign), w(p.vault), w(p.commission), w(p.payeeToken), w(p.rentPayer), ro(TOKEN_PROGRAM)],
+    accounts: [w(p.campaign), w(p.vault), w(p.commission), w(p.payeeToken), w(p.rentPayer), ro(TOKEN_PROGRAM), w(p.treasuryToken)],
     data: data(3, 0),
   };
 }

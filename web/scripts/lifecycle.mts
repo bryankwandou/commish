@@ -51,21 +51,22 @@ const mintTo = (dest: Address, amt: bigint) => { const d = Buffer.alloc(9); d[0]
 const mintRent = await cx.getMinimumBalanceForRentExemption(82);
 const ataOf = (k: Keypair) => C.findAta(a(k), mint);
 const [brandAta, creatorAta, buyerAta, strangerAta] = await Promise.all([ataOf(brand), ataOf(creator), ataOf(buyer), ataOf(stranger)]);
+const treasuryAta = await C.findAta(C.TREASURY, mint);
 await send("setup: token mint and accounts", [
   SystemProgram.createAccount({ fromPubkey: brand.publicKey, newAccountPubkey: mintKp.publicKey, lamports: mintRent, space: 82, programId: TOKEN }), initMint,
-  C.createAtaIx(a(brand), brandAta, a(brand), mint), C.createAtaIx(a(brand), creatorAta, a(creator), mint), C.createAtaIx(a(brand), buyerAta, a(buyer), mint), C.createAtaIx(a(brand), strangerAta, a(stranger), mint),
+  C.createAtaIx(a(brand), brandAta, a(brand), mint), C.createAtaIx(a(brand), creatorAta, a(creator), mint), C.createAtaIx(a(brand), buyerAta, a(buyer), mint), C.createAtaIx(a(brand), strangerAta, a(stranger), mint), C.createAtaIx(a(brand), treasuryAta, C.TREASURY, mint),
   mintTo(brandAta, U(1000)), mintTo(buyerAta, U(100)),
 ], [mintKp]);
 
 // ---- campaign: 10%, 8-second refund window, a separate attestor key
 const campRent = BigInt(await cx.getMinimumBalanceForRentExemption(C.CAMPAIGN_LEN));
 const comRent = BigInt(await cx.getMinimumBalanceForRentExemption(C.COMMISSION_LEN));
-const HOLD = 8n;
+const HOLD = 20n;
 const bad = await C.createCampaignIxs({ brand: a(brand), id: C.randomCampaignId(), bps: 6000, holdSeconds: HOLD, attestor: a(attestor), mint, lamports: campRent });
 await send("attack: rate above 50%", bad.instructions, [], 6007);
 const cc = await C.createCampaignIxs({ brand: a(brand), id: C.randomCampaignId(), bps: 1000, holdSeconds: HOLD, attestor: a(attestor), mint, lamports: campRent });
 const { campaign, vault } = cc;
-await send("create_campaign (10%, 8 s window)", cc.instructions, []);
+await send("create_campaign (10%, 20 s window)", cc.instructions, []);
 await send("fund vault with 100", [C.tokenTransferIx(brandAta, vault, a(brand), U(100))], []);
 
 // ---- record sales
@@ -102,7 +103,7 @@ await send("sell order-C for 19.40", [C.sellIx({ payee: a(creator), buyer: a(buy
 check("creator paid 19.40 today", await bal(creatorAta), U(19.4));
 
 // ---- before the window closes
-const rel = (com: Address, dest: Address) => C.releaseIx({ campaign, vault, commission: com, payeeToken: dest, rentPayer: a(attestor) });
+const rel = (com: Address, dest: Address) => C.releaseIx({ campaign, vault, commission: com, payeeToken: dest, rentPayer: a(attestor), treasuryToken: treasuryAta });
 await send("attack: release before window", [rel(comA, creatorAta)], [], 6011);
 
 console.log("waiting for the refund window to close…");
@@ -115,8 +116,9 @@ await send("attack: release order-A twice", [rel(comA, creatorAta)], [], -1);
 await send("attack: release sold order-C to creator", [rel(comC, creatorAta)], [], 6013);
 await send("release order-C to buyer", [rel(comC, buyerAta)], []);
 await send("release order-D", [rel(comD, creatorAta)], []);
-check("creator total = 19.40 + 25 + 5", await bal(creatorAta), U(49.4));
-check("buyer = 100 - 19.40 + 20", await bal(buyerAta), U(100.6));
+check("creator total = 19.40 + 24.75 + 4.95 (1% fee taken)", await bal(creatorAta), U(49.1));
+check("buyer = 100 - 19.40 + 19.80", await bal(buyerAta), U(100.4));
+check("treasury fee = 0.25 + 0.20 + 0.05", await bal(treasuryAta), U(0.5));
 check("vault keeps the refunded 10, now unreserved", await bal(vault), U(10));
 await send("withdraw the refunded 10", [C.withdrawIx({ brand: a(brand), campaign, vault, dest: brandAta, amount: U(10) })], []);
 check("vault empty", await bal(vault), 0n);
