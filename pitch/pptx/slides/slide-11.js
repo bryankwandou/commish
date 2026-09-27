@@ -1,22 +1,26 @@
 const pptxgen = require("pptxgenjs");
 const { F, M, C, base, badge, source, card } = require("./lib.js");
 
-const slideConfig = {"type": "summary", "index": 11, "title": "Next: ten Solana brands run their creator payouts through Commish."};
-const NOTES = "Here's the plan. The program and the app are done. Next is the mainnet deploy and a first live campaign, then ten pilots with Solana apps that already pay creators and hold USDC. After that, an audit and a Shopify integration through order webhooks. If you run an affiliate program, try it at getcommish.vercel.app.";
+const slideConfig = {"type": "content", "index": 11, "title": "Built by a creator who gets paid on other people's schedules."};
+const NOTES = "I'm Bryan Kwandou. I've sold my own art on Objkt since 2022 and on Drip since 2024, and I earn through Shutterstock and Upwork, so every payout I get runs on someone else's schedule. I study informatics in Makassar and lead the Superteam campus club there. I built Commish's program, app and tests myself.";
 
 // MUST stay synchronous: compile.js does not await.
 function createSlide(pres, theme) {
-  const slide = base(pres, theme, { n: 11, eyebrow: "Next", headline: slideConfig.title });
-  slide.addShape(pres.shapes.LINE, { x: 0.6, y: 2.45, w: 8.8, h: 0, line: { color: theme.light, width: 2 } });
-  const steps = [["Sep 2026", "Program and app built, 26 tests pass", true], ["Oct 2026", "Mainnet deploy and the first live campaign", false], ["Q4 2026", "Ten pilots with Solana apps that already pay creators", false], ["2027", "Audit, then a Shopify integration through order webhooks", false]];
-  steps.forEach(([when, what, hi], i) => {
-    const x = 0.6 + i * 2.25;
-    slide.addShape(pres.shapes.OVAL, { x, y: 2.34, w: 0.22, h: 0.22, fill: { color: hi ? theme.accent : theme.bg }, line: { color: hi ? theme.accent : theme.secondary, width: 1.5 } });
-    slide.addText(when, { x, y: 2.75, w: 2.0, h: 0.4, margin: 0, fontSize: 17, fontFace: F, bold: true, color: hi ? theme.accent : theme.primary });
-    slide.addText(what, { x, y: 3.18, w: 1.95, h: 0.9, margin: 0, valign: "top", fontSize: 11, fontFace: F, color: theme.secondary });
+  const slide = base(pres, theme, { n: 11, eyebrow: "Team", headline: slideConfig.title });
+  slide.addShape(pres.shapes.OVAL, { x: 0.6, y: 2.05, w: 1.1, h: 1.1, fill: { color: C.panel }, line: { color: theme.accent, width: 1.5 } });
+  slide.addText("BK", { x: 0.6, y: 2.05, w: 1.1, h: 1.1, margin: 0, align: "center", valign: "middle", fontSize: 26, fontFace: F, bold: true, color: theme.accent });
+  slide.addText("Bryan Kwandou", { x: 1.95, y: 2.2, w: 5, h: 0.45, margin: 0, fontSize: 20, fontFace: F, bold: true, color: theme.primary });
+  slide.addText("Founder · Makassar, Indonesia", { x: 1.95, y: 2.65, w: 5, h: 0.35, margin: 0, fontSize: 13, fontFace: F, color: theme.secondary });
+  const proof = [
+    ["CREATOR", "NFT art on Objkt since 2022 and Drip since 2024; Shutterstock, Upwork"],
+    ["BUILDER", "Informatics, Atma Jaya Makassar; Superteam campus lead"],
+    ["SHIPPED", "The program, the app and 26 tests: github.com/bryankwandou/commish"],
+  ];
+  proof.forEach(([k, v], i) => {
+    const y = 3.45 + i * 0.5;
+    slide.addText(k, { x: 0.6, y, w: 1.0, h: 0.36, margin: 0, valign: "middle", fontSize: 10, fontFace: M, bold: true, color: theme.accent });
+    slide.addText(v, { x: 1.95, y, w: 7.3, h: 0.36, margin: 0, valign: "middle", fontSize: 14, fontFace: F, color: theme.primary });
   });
-  slide.addText("getcommish.vercel.app", { x: 0.6, y: 4.45, w: 5, h: 0.4, margin: 0, fontSize: 16, fontFace: M, bold: true, color: theme.accent });
-  source(slide, "Source: team plan, not outside data");
   slide.addNotes(NOTES);
   return slide;
 }

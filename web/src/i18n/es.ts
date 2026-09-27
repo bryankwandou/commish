@@ -123,7 +123,7 @@ const es: Dictionary = {
   sides: {
     brands: {
       title: "Para marcas",
-      points: [
+      points: ["Demuestra on-chain que pagas, para que los creadores elijan tu programa", 
         "Define la tasa y el plazo de devolución una vez por campaña",
         "Retira el presupuesto sin reservar cuando quieras",
         "Registra ventas desde el webhook de pedidos o a mano",
