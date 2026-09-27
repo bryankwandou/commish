@@ -1,0 +1,4 @@
+node_modules/
+slides/output/
+*-preview.pptx
+package-lock.json
