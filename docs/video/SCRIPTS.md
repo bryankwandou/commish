@@ -11,7 +11,7 @@ progress posts on X.
 
 Every number below comes from the deck or from `research/commish-sources.md`;
 the source id is in brackets and is not spoken. The two founder lines (2:21 in the pitch, 0:31 in the update) are drafted from
-the founder's public GitHub history; read them once and change anything that
+the founder's CV, LinkedIn and GitHub; read them once and change anything that
 is not right. **[after deploy]** marks a
 shot that needs the program live on mainnet.
 
@@ -36,7 +36,7 @@ face carries the opening, the "why" and the close. The deck carries the rest.
 | 1:38 | Slide 7 | It's one Solana program, written with Pinocchio. 9,296 bytes, small enough to deploy to mainnet for under 0.05 SOL. Every rule is checked on-chain, and 26 tests attack those rules against the compiled program. |
 | 1:53 | Slide 8 | At least eight Solana affiliate projects entered earlier Colosseum hackathons. None placed. [S7] Three of them promised instant payouts, and no brand accepts that while one online order in five comes back. Commish keeps the refund window and guarantees the money inside it. |
 | 2:08 | Slide 9 | US brands are forecast to spend about fourteen billion dollars on affiliate marketing this year. [S3] Our plan is a one percent fee on each payout. If one percent of that spend settled here, that's about 1.4 million dollars a year. |
-| 2:21 | Founder on camera | I built the program, the app in four languages and the tests myself, over five days of public commits. This month I've built escrow programs on Solana: a freelance escrow, a Token-2022 escrow, EscrowKita. Commish points the same idea at creators, whose money is owed but held by someone else. |
+| 2:21 | Founder on camera | I'm a creator too. I've sold my art on Objkt since 2022 and on Drip since 2024, and I earn through Shutterstock and Upwork, so every payout I get runs on someone else's schedule. I study informatics in Makassar, lead the Superteam campus club, and I built Commish's program, app and tests myself. |
 | 2:35 | Founder on camera, then slide 11 | Next is the mainnet deploy and a first live campaign, then ten pilots with Solana apps that already pay creators. If you run an affiliate program, try it at getcommish dot vercel dot app. |
 
 ---
