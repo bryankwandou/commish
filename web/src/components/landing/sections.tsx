@@ -328,7 +328,7 @@ const CODE_TS = `// Copy web/src/lib/commish/program.ts from the Commish reposit
 import { orderHash, recordSaleIx, COMMISSION_LEN } from "./commish/program";
 
 // Called by your shop when a referred order is paid.
-const hash = await orderHash(campaign, order.id);
+const hash = await orderHash(campaign, order.id, SHOP_SECRET); // HMAC key only your server knows
 const { instruction } = await recordSaleIx({
   attestor: attestor.address,   // the key named by the campaign
   payer: attestor.address,      // rent for the commission account
