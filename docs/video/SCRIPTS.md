@@ -38,7 +38,7 @@ About 290 words. Read it at a relaxed pace and it lands at 1:55.
 | 1:30 | Withdraw: try 50, see only 25 allowed | The brand tries to take everything back. It can only withdraw what isn't reserved. The creator's 25 stays locked. |
 | 1:45 | Open the public campaign page | Anyone can see the budget and every open commission, so a creator can check a brand before promoting it. |
 | 1:57 | Switch wallet, Creator desk | Now I'm the creator. My desk shows every commission I'm owed, and when each one is due. |
-| 2:10 | Early payout panel, price 24.25 | If I need the money now, I can sell this commission to a buyer for 24.25 today. The buyer collects the full 25 at release. |
+| 2:10 | Early payout panel, price 24.25 | If I need the money now, I can sell this commission to a buyer for 24.25 today. The buyer collects 24.75 at release, after the 1% protocol fee. |
 | 2:25 | Release on a due commission (0-day window campaign) | When the window closes, release needs no signer. One click, and the USDC lands in my wallet. |
 | 2:40 | Language switcher: Bahasa Indonesia, 中文; theme toggle | It works in four languages, in light and dark, on a phone. |
 | 2:50 | Landing page | Commissions that pay themselves. Commish. |

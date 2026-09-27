@@ -10,7 +10,7 @@
 [![Live App](https://img.shields.io/badge/Live%20App-getcommish.vercel.app-111111?logo=vercel&logoColor=white)](https://getcommish.vercel.app)
 [![Pinocchio](https://img.shields.io/badge/Pinocchio-0.11-FF6B00)](https://github.com/anza-xyz/pinocchio)
 [![Program size](https://img.shields.io/badge/Program-9%2C296%20bytes-2F80ED)](#the-program)
-[![Tests](https://img.shields.io/badge/Tests-26%20passing-2EA043)](#guarantees-and-the-tests-that-attack-them)
+[![Tests](https://img.shields.io/badge/Tests-28%20passing-2EA043)](#guarantees-and-the-tests-that-attack-them)
 [![USDC](https://img.shields.io/badge/Token-USDC-2775CA)](https://explorer.solana.com/address/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Colosseum](https://img.shields.io/badge/Colosseum-Crypto%20World's%20Fair%202026-FF6B00)](https://www.colosseum.org)
@@ -39,7 +39,7 @@
 | **NON-CUSTODIAL** | Funds sit in program-owned vaults. No server, and not the Commish team, can move them |
 | **NO BACKEND KEYS** | The website holds no private key. Every transaction is signed in the user's wallet |
 | **WORKS WITHOUT THE WEBSITE** | `release` needs no signer, so a due commission can be paid from any Solana client |
-| **ATTACK-TESTED** | 26 tests attack the compiled binary; a 41-check lifecycle run passed on a local validator configured like mainnet |
+| **ATTACK-TESTED** | 28 tests attack the compiled binary; a 41-check lifecycle run passed on a local validator configured like mainnet |
 | **REVIEWED** | Internal security review in [`docs/security-review.md`](docs/security-review.md); the one medium finding is fixed |
 | **MULTILINGUAL** | English, Bahasa Indonesia, Español, 中文; light and dark themes; phone-first layout |
 
@@ -310,7 +310,7 @@ to 9,296 bytes without removing a feature or a check:
 - Checked arithmetic where an input can overflow; invariant-based arithmetic
   only where the invariant is enforced on the way in.
 
-The 26 tests run against this exact build, so the size work is tested, not
+The 28 tests run against this exact build, so the size work is tested, not
 assumed.
 
 ### Accounts
@@ -328,7 +328,7 @@ assumed.
 | 0 | `create_campaign` | brand | rate ≤ 5,000 bps, hold ≤ 90 days, vault is the campaign's ATA | 15,109 (with the vault) |
 | 1 | `record_sale` | attestor, payer | signer is the campaign attestor, commission > 0, `reserved + cut ≤ vault balance` | 1,783 |
 | 2 | `cancel` | attestor | before `release_at` | 376 |
-| 3 | `release` | none | after `release_at`, destination owned by the payee and holding the campaign mint, commission belongs to this campaign | 1,666 |
+| 3 | `release` | none | after `release_at`, destination owned by the payee and holding the campaign mint, commission belongs to this campaign; 1% goes to the treasury's token account | 2,947 |
 | 4 | `withdraw` | brand | `reserved + amount ≤ vault balance` | 1,450 |
 | 5 | `sell` | payee, buyer | before `release_at`, price ≤ face value, token accounts on the campaign mint | 1,622 |
 
@@ -383,7 +383,7 @@ the compiled `.so` into LiteSVM.
 
 A second, independent check: [`web/scripts/lifecycle.mts`](web/scripts/lifecycle.mts)
 drives the full lifecycle through the app's own client against a local
-validator with mainnet's feature set, and passed **41 of 41** checks
+validator with mainnet's feature set, and passed **42 of 42** checks, including the 1% fee
 ([`docs/proof/live-validator-run.md`](docs/proof/live-validator-run.md)).
 
 ---
@@ -409,8 +409,10 @@ cd program && npm run build && sha256sum target/deploy/commish.so
 
 ## Business Model
 
-- **Fee:** 1% of each payout, taken at release (planned; the deployed program
-  charges no fee yet).
+- **Fee:** 1% of each payout, taken at release and sent to the treasury's USDC
+  account. It is enforced in the program source (`FEE_BPS = 100`) and covered by
+  two tests and the lifecycle run; it goes live on mainnet with the next program
+  upgrade.
 - **Size of the prize:** if 1% of US affiliate spend settled through Commish,
   that is about $138M a year in volume and about **$1.4M a year** in fees.
 - **Early payout:** a market for pending commissions. Buyers earn the discount;
@@ -444,7 +446,7 @@ Program (needs the Solana CLI with `cargo build-sbf`):
 cd program
 npm ci
 npm run build   # target/deploy/commish.so, 9,296 bytes
-npm test        # 26 tests against the compiled binary
+npm test        # 28 tests against the compiled binary
 ```
 
 App:
@@ -622,7 +624,7 @@ Music: "Happy Beats / Business Moves" Vol. 10 and Vol. 12 by Sascha Ende
 | **NON-KUSTODIAL** | Dana ada di vault milik program. Tidak ada server, termasuk tim Commish, yang bisa memindahkannya |
 | **TANPA KUNCI DI SERVER** | Website tidak menyimpan private key. Setiap transaksi ditandatangani di wallet pengguna |
 | **TETAP JALAN TANPA WEBSITE** | `release` tidak butuh penanda tangan, jadi komisi yang jatuh tempo bisa dibayar dari klien Solana mana pun |
-| **DIUJI DENGAN SERANGAN** | 26 tes menyerang binary hasil kompilasi; 41 pemeriksaan siklus penuh lolos di validator lokal dengan fitur mainnet |
+| **DIUJI DENGAN SERANGAN** | 28 tes menyerang binary hasil kompilasi; 41 pemeriksaan siklus penuh lolos di validator lokal dengan fitur mainnet |
 | **DITINJAU** | Tinjauan keamanan internal di [`docs/security-review.md`](docs/security-review.md); satu temuan medium sudah diperbaiki |
 | **MULTIBAHASA** | English, Bahasa Indonesia, Español, 中文; tema terang dan gelap; tata letak untuk ponsel |
 
@@ -799,7 +801,7 @@ Build pertama berukuran 25.664 byte (sekitar 0,13 SOL). Ukurannya turun ke
   sewa minimum.
 - Aritmetika checked untuk input yang bisa overflow.
 
-26 tes berjalan terhadap build yang persis sama, jadi pengecilan ukuran ini
+28 tes berjalan terhadap build yang persis sama, jadi pengecilan ukuran ini
 sudah diuji, bukan diasumsikan.
 
 | # | Instruksi | Penanda tangan | Fungsi | Compute unit |
@@ -841,7 +843,7 @@ Setiap aturan ditegakkan oleh program dan diserang oleh tes di
 
 Pemeriksaan kedua yang independen: [`web/scripts/lifecycle.mts`](web/scripts/lifecycle.mts)
 menjalankan siklus penuh lewat klien aplikasi di validator lokal dengan fitur
-mainnet, dan lolos **41 dari 41** pemeriksaan
+mainnet, dan lolos **42 dari 42** pemeriksaan, termasuk biaya 1%
 ([`docs/proof/live-validator-run.md`](docs/proof/live-validator-run.md)).
 
 ---
@@ -861,8 +863,9 @@ Perintah untuk memverifikasi sendiri ada di bagian [On-Chain Proof](#on-chain-pr
 
 ## Model Bisnis
 
-- **Biaya:** 1% dari setiap pencairan, diambil saat `release` (direncanakan;
-  program yang ter-deploy belum memungut biaya).
+- **Biaya:** 1% dari setiap pencairan, diambil saat `release` dan dikirim ke akun
+  USDC treasury. Sudah ada di kode program (`FEE_BPS = 100`), diuji oleh dua tes
+  dan pemeriksaan siklus penuh, dan aktif di mainnet pada upgrade program berikutnya.
 - **Potensi:** jika 1% belanja afiliasi AS diselesaikan lewat Commish, itu
   sekitar US$138 juta volume per tahun dan sekitar **US$1,4 juta per tahun**
   dari biaya.
@@ -893,7 +896,7 @@ Perintah untuk memverifikasi sendiri ada di bagian [On-Chain Proof](#on-chain-pr
 # Program
 cd program && npm ci
 npm run build   # target/deploy/commish.so, 9.296 byte
-npm test        # 26 tes terhadap binary hasil kompilasi
+npm test        # 28 tes terhadap binary hasil kompilasi
 
 # Aplikasi
 cd web && npm ci
