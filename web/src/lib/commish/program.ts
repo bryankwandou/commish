@@ -159,13 +159,36 @@ export async function findAta(owner: Address, mint: Address) {
 }
 
 /**
- * Order hash committed on-chain: sha256("commish:v1" | campaign | order id).
- * The campaign address in the preimage keeps order ids from different shops
- * apart; order ids never appear on-chain in clear.
+ * Order hash committed on-chain, which also fixes the commission's address.
+ *
+ * With a `key` (recommended): HMAC-SHA256(key, "commish:v1" | campaign | order id).
+ * The address then cannot be predicted by anyone without the key. Without one,
+ * an outsider who can guess the next order id (shops often number orders in
+ * sequence) can send a few lamports to that address first, and record_sale for
+ * that order fails, because a new account cannot be created where lamports
+ * already sit. The key is the attestor's secret: an HMAC secret on a shop
+ * server, or `attestorKey()` for a wallet. The same key and order id always give
+ * the same hash, so an order still cannot be recorded twice while its
+ * commission is open.
+ *
+ * Without a key: sha256("commish:v1" | campaign | order id). Only safe for order
+ * ids that are already unguessable, such as random UUIDs.
  */
-export async function orderHash(campaign: Address, orderId: string): Promise<Uint8Array> {
+export async function orderHash(campaign: Address, orderId: string, key?: Uint8Array): Promise<Uint8Array> {
   const pre = new Uint8Array([...new TextEncoder().encode("commish:v1"), ...enc.encode(campaign), ...new TextEncoder().encode(orderId)]);
-  return new Uint8Array(await crypto.subtle.digest("SHA-256", pre));
+  if (!key) return new Uint8Array(await crypto.subtle.digest("SHA-256", pre));
+  const k = await crypto.subtle.importKey("raw", key as BufferSource, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return new Uint8Array(await crypto.subtle.sign("HMAC", k, pre as BufferSource));
+}
+
+/**
+ * A per-campaign HMAC key for an attestor that signs from a wallet. Wallet
+ * signatures (ed25519) are deterministic, so the same wallet always derives the
+ * same key for a campaign, and nobody else can.
+ */
+export async function attestorKey(campaign: Address, signMessage: (m: Uint8Array) => Promise<Uint8Array>): Promise<Uint8Array> {
+  const sig = await signMessage(new TextEncoder().encode(`Commish order key v1 for campaign ${campaign}. Signing this costs nothing and moves no funds.`));
+  return new Uint8Array(await crypto.subtle.digest("SHA-256", sig as BufferSource));
 }
 
 /** A random campaign id (u64), so campaign addresses cannot be guessed. */
