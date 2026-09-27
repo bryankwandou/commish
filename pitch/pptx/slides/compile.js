@@ -14,7 +14,7 @@ const theme = {
   bg: "0B0B0E",
 };
 
-for (let i = 1; i <= 11; i++) {
+for (let i = 1; i <= 12; i++) {
   const num = String(i).padStart(2, "0");
   require(`./slide-${num}.js`).createSlide(pres, theme);
 }
