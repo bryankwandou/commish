@@ -126,7 +126,7 @@ export default async function Docs({ params }: PageProps<"/[lang]/docs">) {
             <li>Funds leave the vault only through <C>release</C> (to the payee&apos;s token account, after the window) and <C>withdraw</C> (the unreserved part, to the brand).</li>
             <li>Only the legacy SPL Token program is accepted, and every token account is checked for the campaign&apos;s mint.</li>
             <li>A pre-funded commission address makes <C>record_sale</C> fail for that order; order hashes include the campaign address and are not predictable without the order id.</li>
-            <li>The program is not audited. It is covered by 26 end-to-end tests that run against the deployed binary, most of them attacks that must fail.</li>
+            <li>The program is not audited. It is covered by 26 end-to-end tests that run against the compiled binary, most of them attacks that must fail.</li>
           </ul>
         </article>
       </main>

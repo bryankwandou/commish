@@ -1,0 +1,12 @@
+{
+  "name": "commish-pitch-pptx",
+  "private": true,
+  "license": "Apache-2.0",
+  "description": "Builds pitch/commish-pitch-editable.pptx with PptxGenJS",
+  "scripts": {
+    "build": "node slides/compile.js && cp slides/output/commish-pitch-editable.pptx ../"
+  },
+  "dependencies": {
+    "pptxgenjs": "^4.0.1"
+  }
+}

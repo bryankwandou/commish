@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Commish: pitch</title>
+<style>
+@font-face{font-family:Geist;font-weight:100 900;font-display:block;src:url(fonts/geist-latin.woff2) format("woff2")}
+@font-face{font-family:"Geist Mono";font-weight:100 900;font-display:block;src:url(fonts/geist-mono-latin.woff2) format("woff2")}
+:root{
+  --bg:#FAFAF7; --ink:#15161A; --muted:#6B6E76; --line:#E4E3DD; --panel:#F1F0EA;
+  --accent:#3DDC97; --font:'Geist',system-ui,sans-serif; --mono:'Geist Mono',ui-monospace,monospace;
+}
+.dark{ --bg:#0B0B0E; --ink:#F4F4F5; --muted:#A1A1AA; --line:#27272A; --panel:#141417; }
+.brand{display:flex;align-items:center;gap:14px;font-size:30px;font-weight:600;letter-spacing:-.02em;margin-bottom:40px}
+.brand img{width:52px;height:52px}
+.held{color:#F5B544}
+h1,h2{text-wrap:balance}
+.dark .hbars .t i{background:#52525B}
+.dark .hbars .hi i{background:var(--accent)}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;background:#0c0c0e;font-family:var(--font);-webkit-font-smoothing:antialiased}
+.stage{position:fixed;inset:0;overflow:hidden}
+.deck{width:1280px;height:720px;position:absolute;left:50%;top:50%;margin:-360px 0 0 -640px;transform-origin:center}
+section{position:absolute;inset:0;background:var(--bg);color:var(--ink);padding:64px 64px 56px;display:flex;flex-direction:column;
+  opacity:0;pointer-events:none;transition:opacity .35s ease}
+section.on{opacity:1;pointer-events:auto}
+.eyebrow{font-size:14px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:18px}
+h1{font-size:72px;line-height:1.02;letter-spacing:-.035em;font-weight:700;max-width:18ch}
+h2{font-size:48px;line-height:1.08;letter-spacing:-.025em;font-weight:600;max-width:22ch}
+p,li{font-size:24px;line-height:1.45;color:var(--ink);max-width:40ch}
+.lede{color:var(--muted);margin-top:24px}
+h1+p,h2+p{margin-top:32px}
+ul{padding:0;list-style:none;margin-top:36px;display:grid;gap:18px}
+li{padding-left:28px;position:relative}
+li::before{content:"";position:absolute;left:0;top:.62em;width:12px;height:2px;background:var(--accent)}
+.fill{flex:1;display:flex;flex-direction:column;justify-content:center}
+.center{align-items:center;text-align:center} .center h1,.center h2,.center p{margin-inline:auto}
+.big{white-space:nowrap;font-size:180px;font-weight:700;letter-spacing:-.05em;line-height:.9;color:var(--accent);font-feature-settings:"tnum"}
+.source{margin-top:auto;font-size:14px;color:var(--muted);padding-top:16px;max-width:none}
+.row{display:grid;grid-template-columns:repeat(12,1fr);gap:24px;margin-top:40px;flex:1;align-items:center}
+.row>*{min-width:0}
+.c5{grid-column:span 5}.c6{grid-column:span 6}.c7{grid-column:span 7}.c4{grid-column:span 4}.c8{grid-column:span 8}
+.frame{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;box-shadow:0 24px 48px -28px rgba(0,0,0,.25)}
+.mono{font-family:var(--mono);font-size:17px;line-height:1.6}
+.quote{font-size:36px;line-height:1.3;letter-spacing:-.015em;max-width:30ch}
+.who{margin-top:20px;font-size:18px;color:var(--muted)}
+.accent{color:var(--accent)}
+.stat{border-top:2px solid var(--ink);padding-top:14px}
+.stat b{display:block;font-size:56px;letter-spacing:-.03em;font-weight:600;font-feature-settings:"tnum"}
+.stat span{font-size:18px;color:var(--muted)}
+.bar{height:14px;border-radius:3px;background:var(--line)} .bar.hi{background:var(--accent)}
+.foot{position:absolute;left:64px;right:64px;bottom:24px;display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+aside.notes{display:none}
+#progress{position:fixed;left:0;bottom:0;height:3px;background:var(--accent);transition:width .3s}
+#notes{position:fixed;left:0;right:0;bottom:0;max-height:32vh;overflow:auto;background:#16171b;color:#ddd;font:16px/1.5 var(--font);padding:18px 24px;display:none}
+#notes.show{display:block}
+/* Hint sits in the dark margin, never on the slide, and fades after a few seconds. */
+#hint{position:fixed;right:16px;bottom:10px;font:12px var(--font);color:#777;transition:opacity .6s;pointer-events:none}
+#hint.gone{opacity:0}
+/* ---- charts and visuals: data lives in the markup, CSS draws it, entrance plays when the slide shows ---- */
+.hbars{display:grid;grid-template-columns:auto 1fr auto;gap:14px 18px;align-items:center;margin-top:8px}
+.hbars .l{font-size:20px;color:var(--ink);white-space:nowrap}
+.hbars .t{position:relative;height:30px;background:var(--panel);border-radius:4px}
+.hbars .t i{position:absolute;top:0;bottom:0;left:calc(var(--a,0)*1%);width:0;background:var(--line);border-radius:4px;transition:width .9s cubic-bezier(.2,.7,.2,1) calc(var(--d,0)*120ms + .2s)}
+.hbars .hi i{background:var(--accent)}
+.hbars .v{font-size:20px;font-weight:600;font-feature-settings:"tnum";white-space:nowrap}
+section.on .hbars .t i,.print .hbars .t i{width:calc((var(--b) - var(--a,0))*1%)}
+.axis{grid-column:2;display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+table.t{border-collapse:collapse;width:100%;margin-top:28px;font-size:20px}
+table.t th{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:0 16px 12px 0;border-bottom:2px solid var(--ink)}
+table.t td{padding:14px 16px 14px 0;border-bottom:1px solid var(--line);vertical-align:top}
+table.t tr.hi td{color:var(--accent);font-weight:600}
+.tl{position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;margin-top:56px;padding-top:34px}
+.tl::before{content:"";position:absolute;left:0;right:0;top:9px;height:2px;background:var(--line)}
+.tl>div{position:relative;padding-right:16px}
+.tl>div::before{content:"";position:absolute;top:-31px;left:0;width:14px;height:14px;border-radius:50%;background:var(--bg);border:2px solid var(--muted)}
+.tl>div.hi::before{background:var(--accent);border-color:var(--accent)}
+.tl b{display:block;font-size:30px;letter-spacing:-.02em;font-feature-settings:"tnum"}
+.tl .hi b{color:var(--accent)}
+.tl span{display:block;font-size:17px;line-height:1.35;color:var(--muted);margin-top:6px}
+.flow{display:flex;align-items:stretch;gap:0;margin-top:44px}
+.flow>div{flex:1;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:20px 22px}
+.flow>div.hi{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.flow>em{flex:0 0 44px;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:28px;color:var(--muted)}
+.flow b{display:block;font-size:22px;margin-bottom:6px}
+.flow span{display:block;font-size:17px;line-height:1.4;color:var(--muted)}
+.shot{display:block;max-width:100%;max-height:340px;border-radius:12px;border:1px solid var(--line);box-shadow:0 30px 60px -30px rgba(0,0,0,.45)}
+.cap{font-size:14px;color:var(--muted);margin-top:10px}
+/* entrance: children of .rv rise in one after another */
+.rv>*{opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease}
+section.on .rv>*,.print .rv>*{opacity:1;transform:none}
+section.on .rv>:nth-child(2){transition-delay:.12s}section.on .rv>:nth-child(3){transition-delay:.24s}
+section.on .rv>:nth-child(4){transition-delay:.36s}section.on .rv>:nth-child(5){transition-delay:.48s}
+section.on .rv>:nth-child(6){transition-delay:.6s}section.on .rv>:nth-child(7){transition-delay:.72s}
+section.on .rv>:nth-child(n+8){transition-delay:.84s}
+@media print{
+  @page{size:1280px 720px;margin:0}
+  html,body{background:none} .stage{position:static;display:block} .deck{transform:none!important;position:static;margin:0;width:auto;height:auto}
+  section{position:relative;opacity:1;width:1280px;height:720px;page-break-after:always;break-after:page}
+  #progress,#notes,#hint{display:none}
+}
+@media print{.hbars .t i{width:calc((var(--b) - var(--a,0))*1%)!important;transition:none}.rv>*{opacity:1!important;transform:none!important}}
+@media (prefers-reduced-motion:reduce){section,.hbars .t i,.rv>*{transition:none}}
+</style>
+</head>
+<body>
+<div class="stage"><div class="deck dark" id="deck">
+<!--SLIDES-->
+<section class="center">
+  <div class="fill center">
+    <div class="brand"><img src="../docs/images/mark.svg" alt="">commish</div>
+    <h1>Affiliate commissions that pay themselves, settled in USDC on Solana.</h1>
+    <p class="lede">Bryan Kwandou, founder · Colosseum Crypto World's Fair</p>
+  </div>
+  <aside class="notes">I'm Bryan, and this is Commish. When a creator sends a buyer to a shop, the commission they earn is a promise in the brand's spreadsheet. Commish turns it into money locked on Solana the moment the sale is recorded, and paid out in USDC when the refund window closes.</aside>
+</section>
+
+<section>
+  <div class="eyebrow">Problem</div>
+  <h2>Amazon pays its affiliates about 60 days after the month closes.</h2>
+  <div class="fill"><div class="big">60 days</div></div>
+  <p class="source">Source: Amazon Associates Central, payment help page [S1]</p>
+  <aside class="notes">Take the biggest affiliate program there is. Amazon pays commission about sixty days after the end of the month it was earned [S1]. A sale on January 2nd becomes money around the end of March. And until the brand pays, the creator has nothing but the brand's word that it will.</aside>
+</section>
+
+<section>
+  <div class="eyebrow">Why brands wait</div>
+  <h2>Brands hold commissions because one in five online orders comes back.</h2>
+  <div class="fill"><div class="big">19.3%</div><p class="lede">of US online sales were expected to be returned in 2025</p></div>
+  <p class="source">Source: National Retail Federation, 2025 returns report [S2]</p>
+  <aside class="notes">Brands don't wait to be difficult. About nineteen percent of online sales in the US come back [S2], and nobody wants to pay commission on a refund. So the hold is fair. What's missing is a guarantee: during that hold, the money is still the brand's to spend.</aside>
+</section>
+
+<section>
+  <div class="eyebrow">Product</div>
+  <h2>Each sale reserves the creator's cut where the brand can't spend it.</h2>
+  <div class="fill center"><img class="shot" src="../docs/images/commission-held.png" alt="A held commission" style="max-height:400px"><p class="cap">The commission card on getcommish.vercel.app, held inside the refund window</p></div>
+  <aside class="notes">Here's what changes. A brand funds a campaign vault in USDC. When a referred order is paid, the brand's server records it, and the program sets aside the creator's cut in its own account. From then on the brand can withdraw everything except what it owes. A refund inside the window cancels the commission.</aside>
+</section>
+
+<section>
+  <div class="eyebrow">In use</div>
+  <h2>Record the sale, hold it through the window, then release.</h2>
+  <div class="flow rv">
+    <div><b>Record</b><span>The brand's server signs it. The program sets the cut from the campaign rate.</span></div>
+    <em>→</em>
+    <div><b class="held">Hold</b><span>A refund inside the window cancels it.</span></div>
+    <em>→</em>
+    <div class="hi"><b>Release</b><span>Anyone can trigger it. USDC goes only to the payee.</span></div>
+  </div>
+  <aside class="notes">Three steps. The attestor records the sale, and the program computes the cut, not the caller. The commission sits through the refund window. Then anyone can release it, the creator or a bot, and the money can only land in the payee's own USDC account. If this website went offline tomorrow, creators could still collect.</aside>
+</section>
+
+<section>
+  <div class="eyebrow">Early payout</div>
+  <h2>A creator who can't wait sells the commission for cash today.</h2>
+  <div class="fill">
+    <div class="hbars">
+      <span class="l">Creator, paid today</span><div class="t hi"><i style="--b:97;--d:0"></i></div><span class="v">24.25 USDC</span>
+      <span class="l">Buyer, paid at release</span><div class="t"><i style="--b:100;--d:1"></i></div><span class="v">25.00 USDC</span>
+    </div>
+  </div>
+  <p class="source">Example: a 25.00 USDC commission sold at a 3% discount. Illustration, not outside data.</p>
+  <aside class="notes">A pending commission is money owed on a known date, so it can be sold. Here the creator sells a twenty-five dollar commission for 24.25 and is paid right away. The buyer becomes the payee, collects the full amount at release, and takes over the refund risk. It all settles in one transaction.</aside>
+</section>
+
+<section>
+  <div class="eyebrow">How it works</div>
+  <h2>One 9,296-byte program enforces the rules, and 26 tests attack them.</h2>
+  <table class="t">
+    <tr><th>Rule</th><th>On-chain check</th></tr>
+    <tr><td>Owed money stays locked</td><td>Withdrawals stop at the reserved amount</td></tr>
+    <tr><td>One order, one commission</td><td>Address derived from the order hash</td></tr>
+    <tr class="hi"><td>Payouts can't be redirected</td><td>Destination must belong to the payee</td></tr>
+  </table>
+  <p class="source">Source: program/ in github.com/bryankwandou/commish; base fee [S6]</p>
+  <aside class="notes">All of it is one Solana program written with Pinocchio: 9,296 bytes, small enough that deploying it to mainnet costs under 0.05 SOL. Each rule here is checked on-chain, and the test suite has an attack for each one that has to fail. A transaction's base fee is 5,000 lamports per signature [S6], cheap enough to run for every order.</aside>
+</section>
+
+<section>
+  <div class="eyebrow">Who else</div>
+  <h2>At least eight Solana affiliate projects entered Colosseum before us. None placed.</h2>
+  <table class="t">
+    <tr><th>Project</th><th>What it offered</th></tr>
+    <tr><td>SuperLink</td><td>Revenue share via Blinks</td></tr>
+    <tr><td>Earnify</td><td>Web3 affiliate dashboard</td></tr>
+    <tr><td>Sendit</td><td>Marketplace with affiliates</td></tr>
+    <tr><td>Redio</td><td>Instant affiliate payouts</td></tr>
+    <tr><td>Coinfiliate</td><td>USDC rewards to shoppers</td></tr>
+    <tr><td>Three more</td><td>Blinks Deals, Traxeo, Reflink</td></tr>
+  </table>
+  <p class="source">Source: Colosseum Copilot API and Arena, 2026-09-27 [S7]</p>
+  <aside class="notes">We checked before building. Colosseum's project search turns up eight earlier Solana affiliate or referral projects, and none placed [S7]. Three of them promised instant payouts, which no brand accepts while one online order in five comes back. Commish keeps the refund window brands already use, and guarantees the money inside it.</aside>
+</section>
+
+<section>
+  <div class="eyebrow">Market</div>
+  <h2>US brands will spend $13.81 billion on affiliate marketing in 2026.</h2>
+  <div class="fill"><div class="big">$13.81B</div><p class="lede">Our plan is a 1% fee on each payout. If 1% of that spend settled here, that is $1.38M a year.</p></div>
+  <p class="source">Source: eMarketer forecast via Post Affiliate Pro [S3]. Fee and share are team plan, not outside data.</p>
+  <aside class="notes">US affiliate spend alone is forecast at about fourteen billion dollars this year [S3], and Goldman Sachs counts fifty million creators worldwide [S4]. Our own plan is a one percent fee on each payout. If one percent of US affiliate spend settled through Commish, that's about 1.4 million dollars a year. Dollar stablecoins have had a US law behind them since July 2025 [S5].</aside>
+</section>
+
+<section>
+  <div class="eyebrow">Team</div>
+  <h2>One founder built the program, app and tests in five days.</h2>
+  <ul class="rv">
+    <li>Bryan Kwandou wrote the Pinocchio program and the four-language app</li>
+    <li>Publishes open-source tools for builders: Plinth, Lugas, Splicecraft</li>
+    <li>Every commit is public at github.com/bryankwandou/commish</li>
+  </ul>
+  <aside class="notes">I'm Bryan Kwandou. I built Commish on my own: the program, the app in four languages and the tests, across five days of public commits. I also publish open-source tools for decks, writing and video editing. The code is the proof, and all of it is on GitHub. The next step is real campaigns.</aside>
+</section>
+
+<section>
+  <div class="eyebrow">Next</div>
+  <h2>Next: ten Solana brands run their creator payouts through Commish.</h2>
+  <div class="tl rv">
+    <div class="hi"><b>Sep 2026</b><span>Program and app built, 26 tests pass</span></div>
+    <div><b>Oct 2026</b><span>Mainnet deploy and the first live campaign</span></div>
+    <div><b>Q4 2026</b><span>Ten pilots with Solana apps that already pay creators</span></div>
+    <div><b>2027</b><span>Audit, then a Shopify integration through order webhooks</span></div>
+  </div>
+  <p class="source">Source: team plan, not outside data</p>
+  <aside class="notes">Here's the plan. The program and the app are done. Next is the mainnet deploy and a first live campaign, then ten pilots with Solana apps that already pay creators and hold USDC. After that, an audit and a Shopify integration through order webhooks. If you run an affiliate program, try it at getcommish.vercel.app.</aside>
+</section>
+<!--/SLIDES-->
+</div></div>
+<div id="progress"></div><div id="notes"></div>
+<div id="hint">← → · F fullscreen · N notes · P print</div>
+<script>
+(()=>{
+  const deck=document.getElementById('deck'),S=[...deck.querySelectorAll('section')],bar=document.getElementById('progress'),nb=document.getElementById('notes');
+  let i=Math.min(S.length-1,Math.max(0,(parseInt(location.hash.slice(1))||1)-1));
+  const fit=()=>{const k=document.body.classList.contains('print')?Math.min(innerWidth/1280,innerHeight/720):Math.min(innerWidth/1280,innerHeight/720)*.96;deck.style.transform=`scale(${k})`};
+  const show=n=>{i=Math.max(0,Math.min(S.length-1,n));S.forEach((s,j)=>s.classList.toggle('on',j===i));
+    bar.style.width=((i+1)/S.length*100)+'%';history.replaceState(null,'','#'+(i+1));
+    const a=S[i].querySelector('aside.notes');nb.textContent=a?a.textContent.trim():'';};
+  // A big number shrinks until it fits its column instead of wrapping or running into the text beside it.
+  const fitBig=()=>deck.querySelectorAll('.big').forEach(b=>{const w=b.parentElement.clientWidth;let f=180;b.style.fontSize='';while(b.scrollWidth>w&&f>60){b.style.fontSize=(f-=6)+'px'}});
+  fitBig();document.fonts&&document.fonts.ready.then(fitBig);
+  // ?print shows every slide in its final state, for PDF and PPTX export.
+  if(/[?&]print\b/.test(location.search))document.body.classList.add('print');
+  setTimeout(()=>document.getElementById('hint').classList.add('gone'),4000);
+  // Hovering a bar shows its label and value, so a judge can read exact numbers off the chart.
+  deck.querySelectorAll('.hbars .t').forEach(t=>{const l=t.previousElementSibling,v=t.nextElementSibling;if(l&&v)t.title=l.textContent+': '+v.textContent});
+  addEventListener('resize',fit);fit();show(i);
+  addEventListener('keydown',e=>{
+    if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();show(i+1)}
+    else if(['ArrowLeft','PageUp'].includes(e.key))show(i-1);
+    else if(e.key==='Home')show(0);else if(e.key==='End')show(S.length-1);
+    else if(e.key==='f'||e.key==='F')document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();
+    else if(e.key==='n'||e.key==='N')nb.classList.toggle('show');
+    else if(e.key==='p'||e.key==='P')print();
+  });
+  let x0=null;addEventListener('touchstart',e=>x0=e.touches[0].clientX);
+  addEventListener('touchend',e=>{if(x0==null)return;const d=e.changedTouches[0].clientX-x0;if(Math.abs(d)>40)show(i+(d<0?1:-1));x0=null});
+  deck.addEventListener('click',e=>show(i+(e.clientX>innerWidth/2?1:-1)));
+})();
+</script>
+</body>
+</html>

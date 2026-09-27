@@ -6,6 +6,8 @@
   <a href="https://getcommish.vercel.app"><b>getcommish.vercel.app</b></a> ·
   <a href="https://getcommish.vercel.app/en/docs">Docs</a> ·
   <a href="https://explorer.solana.com/address/CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB">Program on Explorer</a> ·
+  <a href="pitch/commish-pitch.pdf">Pitch deck</a> ·
+  <a href="brag-output/brag.mp4">Launch video</a> ·
   <a href="LICENSE">Apache-2.0</a>
 </p>
 
@@ -192,6 +194,10 @@ Error codes start at 6000 and are listed in the [docs](https://getcommish.vercel
 | [`web/`](web) | the Next.js app: landing, brand console, creator desk, docs, API routes |
 | [`web/src/lib/commish/program.ts`](web/src/lib/commish/program.ts) | the client: account decoders, PDA derivation, every instruction builder |
 | [`docs/images/`](docs/images) | the screenshots in this file |
+| [`pitch/`](pitch) | the pitch deck: PDF, PowerPoint (pixel-exact and editable) and the HTML source with speaker notes |
+| [`research/commish-sources.md`](research/commish-sources.md) | every outside number in the deck, with the page it came from and a verbatim quote |
+| [`docs/video/`](docs/video) | the product walkthrough, the pitch and walkthrough scripts, and the recording guide |
+| [`brag-output/`](brag-output) | the 23-second launch video, its poster and share copy |
 
 The directories `programs/`, `pinocchio/`, `app/`, `runbooks/`, `scripts/` and
 `tests/` hold the first iteration of this project (Anchor, then an earlier
@@ -234,6 +240,16 @@ npm run dev     # http://localhost:3000
 - Order hashes include the campaign address and cannot be predicted without the
   order id, so nobody can pre-create a commission address to block an order.
 - The program has not been audited. Keep amounts modest until it is.
+
+## Media
+
+- **Launch video** (23 s): [`brag-output/brag.mp4`](brag-output/brag.mp4), made from the running app.
+- **Product walkthrough** (1:39): [`docs/video/commish-walkthrough.mp4`](docs/video/commish-walkthrough.mp4).
+- **Pitch deck** (11 slides): [`pitch/commish-pitch.pdf`](pitch/commish-pitch.pdf), [`.pptx`](pitch/commish-pitch.pptx), [editable `.pptx`](pitch/commish-pitch-editable.pptx).
+
+Music in the videos: "Happy Beats / Business Moves" Vol. 10 and Vol. 12 by
+Sascha Ende ([ende.app](https://ende.app/en)), CC BY 4.0. Sound effects by
+[Kenney](https://kenney.nl/), CC0. Geist fonts by Vercel, SIL Open Font License.
 
 ## License
 
