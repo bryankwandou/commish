@@ -1,0 +1,22 @@
+[package]
+name = "commish"
+version = "1.0.0"
+edition = "2021"
+description = "Affiliate commissions held on-chain through the refund window, with early payout. Pinocchio."
+license = "Apache-2.0"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+pinocchio = { version = "=0.11.2", default-features = false, features = ["cpi"] }
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+# Every subtraction and addition that can overflow is checked explicitly.
+overflow-checks = false
+
+[workspace]

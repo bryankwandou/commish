@@ -1,0 +1,13 @@
+{
+  "accent": "#3DDC97",
+  "on_accent": "#0B0B0E",
+  "card_bg": "#141417",
+  "card_text": "#F4F4F5",
+  "muted": "#A1A1AA",
+  "caption_text": "#FFFFFF",
+  "caption_stroke": "#0B0B0E",
+  "caption_size": 64,
+  "caption_upper": false,
+  "grade": "neutral",
+  "cta_text": "getcommish.vercel.app"
+}
