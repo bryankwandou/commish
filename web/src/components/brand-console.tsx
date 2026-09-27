@@ -22,6 +22,7 @@ import {
   createAtaIx,
   createCampaignIxs,
   findAta,
+  attestorKey,
   orderHash,
   randomCampaignId,
   recordSaleIx,
@@ -201,7 +202,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
 function CampaignCard({ c, reload }: { c: CampaignJson; reload: () => void }) {
   const { lang, t } = useI18n();
   const b = t.app.brand;
-  const { publicKey } = useWallet();
+  const { publicKey, signMessage } = useWallet();
   const { connection } = useConnection();
   const send = useSend();
   const [open, setOpen] = useState(false);
@@ -252,7 +253,9 @@ function CampaignCard({ c, reload }: { c: CampaignJson; reload: () => void }) {
   const saleValid = orderId.trim().length > 0 && orderUnits !== null && orderUnits > 0n && isAddress(creator);
   const record = () =>
     saleTx.run(async () => {
-      const hash = await orderHash(c.address as Address, orderId.trim());
+      if (!signMessage) throw new Error("This wallet cannot sign messages, which recording a sale needs.");
+      const key = await attestorKey(c.address as Address, signMessage);
+      const hash = await orderHash(c.address as Address, orderId.trim(), key);
       const lamports = BigInt(await connection.getMinimumBalanceForRentExemption(COMMISSION_LEN));
       const { instruction } = await recordSaleIx({
         attestor: brand!,

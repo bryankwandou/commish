@@ -112,7 +112,7 @@ export default async function Docs({ params }: PageProps<"/[lang]/docs">) {
           <ol className="mb-6 list-decimal space-y-2 pl-5 text-muted">
             <li>Create a campaign in the brand console and choose who records sales: the brand wallet, or a key held by your shop server.</li>
             <li>Creators share your product links with <C>?ref=&lt;their wallet&gt;</C>. Store the ref with the order at checkout.</li>
-            <li>When the order is paid, compute <C>orderHash(campaign, orderId)</C> and send <C>record_sale</C> signed by the attestor.</li>
+            <li>When the order is paid, compute <C>orderHash(campaign, orderId, key)</C> with a key only the attestor holds and send <C>record_sale</C> signed by the attestor.</li>
             <li>If the order is refunded inside the window, send <C>cancel</C>. After the window, anyone can send <C>release</C>.</li>
           </ol>
           <P>
@@ -125,7 +125,8 @@ export default async function Docs({ params }: PageProps<"/[lang]/docs">) {
             <li>The attestor is trusted to report real sales. The program cannot tell whether an off-chain order happened; it removes the brand&apos;s ability to delay or claw back a commission once recorded.</li>
             <li>Funds leave the vault only through <C>release</C> (to the payee&apos;s token account, after the window) and <C>withdraw</C> (the unreserved part, to the brand).</li>
             <li>Only the legacy SPL Token program is accepted, and every token account is checked for the campaign&apos;s mint.</li>
-            <li>A pre-funded commission address makes <C>record_sale</C> fail for that order; order hashes include the campaign address and are not predictable without the order id.</li>
+            <li>A commission address that already holds lamports makes <C>record_sale</C> fail for that order. Derive order hashes with a key only the attestor holds (<C>orderHash(campaign, orderId, key)</C>, HMAC-SHA256) so nobody can predict the next address and block it; the brand console does this with a key derived from the attestor wallet.</li>
+            <li>An order can be recorded again after its commission is paid or cancelled, because the account is closed. Only the attestor can record, so this is the attestor&apos;s responsibility.</li>
             <li>The program is not audited. It is covered by 26 end-to-end tests that run against the compiled binary, most of them attacks that must fail.</li>
           </ul>
         </article>
