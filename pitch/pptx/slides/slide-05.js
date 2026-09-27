@@ -1,26 +1,16 @@
 const pptxgen = require("pptxgenjs");
 const { F, M, C, base, badge, source, card } = require("./lib.js");
 
-const slideConfig = {"type": "content", "index": 5, "title": "Record the sale, hold it through the window, then release."};
-const NOTES = "Three steps. The attestor records the sale, and the program computes the cut, not the caller. The commission sits through the refund window. Then anyone can release it, the creator or a bot, and the money can only land in the payee's own USDC account. If this website went offline tomorrow, creators could still collect.";
+const slideConfig = {"type": "content", "index": 5, "title": "Affiliates pick programs that pay reliably. Commish makes that provable."};
+const NOTES = "Why would a brand lock its own money? Because affiliates choose programs by whether they get paid. In a PerformanceIN survey of 3,200 affiliates in crypto, forex and gambling, 73 percent said payout reliability was their main reason to switch programs [S8]. A Commish campaign shows its reserved and paid totals on-chain, so a brand can prove it pays before a creator signs up.";
 
 // MUST stay synchronous: compile.js does not await.
 function createSlide(pres, theme) {
-  const slide = base(pres, theme, { n: 5, eyebrow: "In use", headline: slideConfig.title });
-  const steps = [
-    ["01", "Record", theme.primary, "The brand's server signs it. The program sets the cut from the campaign rate.", null],
-    ["02", "Hold", C.held, "A refund inside the window cancels it.", null],
-    ["03", "Release", theme.accent, "Anyone can trigger it. USDC goes only to the payee.", theme.accent],
-  ];
-  steps.forEach(([num, title, color, text, edge], i) => {
-    const x = 0.6 + i * 3.0;
-    card(pres, slide, theme, { x, y: 2.15, w: 2.6, h: 2.25 }, edge);
-    slide.addText(num, { x: x + 0.25, y: 2.35, w: 1.0, h: 0.28, margin: 0, fontSize: 10, fontFace: M, color: theme.secondary });
-    slide.addText(title, { x: x + 0.25, y: 2.7, w: 2.1, h: 0.42, margin: 0, fontSize: 20, fontFace: F, bold: true, color });
-    slide.addText(text, { x: x + 0.25, y: 3.2, w: 2.15, h: 1.05, margin: 0, valign: "top", fontSize: 12, fontFace: F, color: theme.secondary });
-    if (i < 2) slide.addText("→", { x: x + 2.6, y: 3.0, w: 0.4, h: 0.5, margin: 0, align: "center", valign: "middle", fontSize: 20, fontFace: F, color: theme.secondary });
-  });
-  slide.addText("record_sale  ·  cancel  ·  release", { x: 0.6, y: 4.6, w: 8.4, h: 0.3, margin: 0, fontSize: 10, fontFace: M, color: C.faint });
+  const slide = base(pres, theme, { n: 5, eyebrow: "Why brands opt in", headline: slideConfig.title });
+  slide.addText("73%", { x: 0.6, y: 1.95, w: 4.8, h: 1.6, margin: 0, valign: "middle", fontSize: 100, fontFace: F, bold: true, color: theme.accent });
+  slide.addText("of affiliates in crypto, forex and gambling programs switch mainly over payout reliability", { x: 0.6, y: 3.6, w: 4.9, h: 0.6, margin: 0, valign: "top", fontSize: 14, fontFace: F, color: theme.secondary });
+  slide.addText("On-chain reserved and paid totals let a brand prove it pays.", { x: 5.75, y: 2.45, w: 3.6, h: 1.2, margin: 0, valign: "top", fontSize: 18, fontFace: F, color: theme.secondary });
+  source(slide, "Source: PerformanceIN 2025 survey of 3,200 affiliates, via TheFinRate [S8]");
   slide.addNotes(NOTES);
   return slide;
 }

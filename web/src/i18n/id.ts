@@ -123,7 +123,7 @@ const id: Dictionary = {
   sides: {
     brands: {
       title: "Untuk brand",
-      points: [
+      points: ["Buktikan di on-chain bahwa Anda membayar, agar kreator memilih program Anda", 
         "Atur tarif dan masa refund sekali per campaign",
         "Tarik budget yang belum terpakai kapan saja",
         "Catat penjualan lewat webhook pesanan, atau manual",

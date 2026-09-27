@@ -1,22 +1,26 @@
 const pptxgen = require("pptxgenjs");
 const { F, M, C, base, badge, source, card } = require("./lib.js");
 
-const slideConfig = {"type": "content", "index": 6, "title": "A creator who can't wait sells the commission for cash today."};
-const NOTES = "A pending commission is money owed on a known date, so it can be sold. Here the creator sells a twenty-five dollar commission for 24.25 and is paid right away. The buyer becomes the payee, collects the full amount at release, and takes over the refund risk. It all settles in one transaction.";
+const slideConfig = {"type": "content", "index": 6, "title": "Record the sale, hold it through the window, then release."};
+const NOTES = "Three steps. The attestor records the sale, and the program computes the cut, not the caller. The commission sits through the refund window. Then anyone can release it, the creator or a bot, and the money can only land in the payee's own USDC account. If this website went offline tomorrow, creators could still collect.";
 
 // MUST stay synchronous: compile.js does not await.
 function createSlide(pres, theme) {
-  const slide = base(pres, theme, { n: 6, eyebrow: "Early payout", headline: slideConfig.title });
-  const rows = [["Creator, paid today", "24.25 USDC", 0.97, theme.accent], ["Buyer, paid at release", "25.00 USDC", 1.0, C.bar]];
-  rows.forEach(([label, value, frac, color], i) => {
-    const y = 2.45 + i * 0.8;
-    slide.addText(label, { x: 0.6, y, w: 2.3, h: 0.42, margin: 0, valign: "middle", fontSize: 14, fontFace: F, color: theme.primary });
-    slide.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 2.95, y: y + 0.03, w: 5.0, h: 0.36, rectRadius: 0.05, fill: { color: C.panel } });
-    slide.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 2.95, y: y + 0.03, w: 5.0 * frac, h: 0.36, rectRadius: 0.05, fill: { color } });
-    slide.addText(value, { x: 8.1, y, w: 1.4, h: 0.42, margin: 0, valign: "middle", fontSize: 14, fontFace: M, bold: true, color: theme.primary });
+  const slide = base(pres, theme, { n: 6, eyebrow: "In use", headline: slideConfig.title });
+  const steps = [
+    ["01", "Record", theme.primary, "The brand's server signs it. The program sets the cut from the campaign rate.", null],
+    ["02", "Hold", C.held, "A refund inside the window cancels it.", null],
+    ["03", "Release", theme.accent, "Anyone can trigger it. USDC goes only to the payee.", theme.accent],
+  ];
+  steps.forEach(([num, title, color, text, edge], i) => {
+    const x = 0.6 + i * 3.0;
+    card(pres, slide, theme, { x, y: 2.15, w: 2.6, h: 2.25 }, edge);
+    slide.addText(num, { x: x + 0.25, y: 2.35, w: 1.0, h: 0.28, margin: 0, fontSize: 10, fontFace: M, color: theme.secondary });
+    slide.addText(title, { x: x + 0.25, y: 2.7, w: 2.1, h: 0.42, margin: 0, fontSize: 20, fontFace: F, bold: true, color });
+    slide.addText(text, { x: x + 0.25, y: 3.2, w: 2.15, h: 1.05, margin: 0, valign: "top", fontSize: 12, fontFace: F, color: theme.secondary });
+    if (i < 2) slide.addText("→", { x: x + 2.6, y: 3.0, w: 0.4, h: 0.5, margin: 0, align: "center", valign: "middle", fontSize: 20, fontFace: F, color: theme.secondary });
   });
-  slide.addText("The buyer becomes the payee and carries the refund risk.", { x: 2.95, y: 4.2, w: 6.0, h: 0.35, margin: 0, fontSize: 12, fontFace: F, color: theme.secondary });
-  source(slide, "Example: a 25.00 USDC commission sold at a 3% discount. Illustration, not outside data.");
+  slide.addText("record_sale  ·  cancel  ·  release", { x: 0.6, y: 4.6, w: 8.4, h: 0.3, margin: 0, fontSize: 10, fontFace: M, color: C.faint });
   slide.addNotes(NOTES);
   return slide;
 }
