@@ -15,3 +15,5 @@ commish-db.json
 .demo/
 web/dist/
 .devnet-rpc
+program/target/
+program/node_modules/

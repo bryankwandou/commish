@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ tokens */
+/* Dark is the default look; light is chosen by the visitor (data-theme). */
+:root {
+  --bg: #09090b;
+  --bg-2: #0e0e11;
+  --surface: #141418;
+  --surface-2: #1b1b21;
+  --line: rgb(255 255 255 / 0.08);
+  --line-strong: rgb(255 255 255 / 0.16);
+  --text: #f4f4f5;
+  --muted: #a1a1aa;
+  --faint: #6b6b76;
+  --held: #f5b544;
+  --paid: #3ddc97;
+  --early: #9b8cff;
+  --danger: #f87171;
+  --ink-on-accent: #07120c;
+  --glow: rgb(61 220 151 / 0.16);
+  --grid: rgb(255 255 255 / 0.035);
+  color-scheme: dark;
+}
+
+/* Theme toggle icon: the icon shown is the theme a click switches to. */
+:root[data-theme="light"] .theme-dark-only,
+:root:not([data-theme="light"]) .theme-light-only {
+  display: none;
+}
+
+:root[data-theme="light"] {
+  --bg: #fafaf8;
+  --bg-2: #f3f3ef;
+  --surface: #ffffff;
+  --surface-2: #f4f4f1;
+  --line: rgb(9 9 11 / 0.09);
+  --line-strong: rgb(9 9 11 / 0.18);
+  --text: #0b0b0d;
+  --muted: #52525b;
+  --faint: #8a8a93;
+  --held: #c77d00;
+  --paid: #0f9f64;
+  --early: #6a55f0;
+  --danger: #d33c3c;
+  --ink-on-accent: #ffffff;
+  --glow: rgb(15 159 100 / 0.12);
+  --grid: rgb(9 9 11 / 0.045);
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-held: var(--held);
+  --color-paid: var(--paid);
+  --color-early: var(--early);
+  --color-danger: var(--danger);
+  --color-ink: var(--ink-on-accent);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--paid) 35%, transparent);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Faint engineering grid behind hero sections. */
+.bg-grid {
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+}
+
+.glow {
+  background: radial-gradient(600px 300px at 50% 0%, var(--glow), transparent 70%);
+}
+
+/* Card with a spotlight border that follows the pointer (--x/--y set in JS). */
+.spotlight {
+  position: relative;
+  isolation: isolate;
+}
+.spotlight::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(260px circle at var(--x, 50%) var(--y, 50%), color-mix(in oklab, var(--paid) 60%, transparent), transparent 60%);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 200ms;
+  z-index: -1;
+  pointer-events: none;
+}
+.spotlight:hover::before {
+  opacity: 1;
+}
+
+input[type="range"] {
+  accent-color: var(--paid);
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee {
+  animation: marquee 40s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
