@@ -1,0 +1,17 @@
+{
+  "name": "commish-program",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "RUSTC_BOOTSTRAP=1 cargo build-sbf -- -Zbuild-std=core -Zbuild-std-features=panic_immediate_abort",
+    "test": "node --import tsx --test test/*.test.ts"
+  },
+  "devDependencies": {
+    "@solana/spl-token": "^0.4.15",
+    "@solana/web3.js": "^1.98.4",
+    "litesvm": "^1.4.1",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.3"
+  }
+}
