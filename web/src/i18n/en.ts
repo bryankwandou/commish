@@ -122,6 +122,7 @@ const en = {
     brands: {
       title: "For brands",
       points: [
+        "Prove on-chain that you pay, so creators pick your program",
         "Set the rate and the refund window once, per campaign",
         "Withdraw unreserved budget whenever you like",
         "Record sales from your order webhook, or by hand",
