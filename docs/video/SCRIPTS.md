@@ -10,8 +10,9 @@ progress posts on X.
 | Weekly update | 0:45 | 9:16 | Founder on camera | splicecraft, level 60 |
 
 Every number below comes from the deck or from `research/commish-sources.md`;
-the source id is in brackets and is not spoken. Lines marked **[fill]** need the
-founder's own words. Say them only if they are true. **[after deploy]** marks a
+the source id is in brackets and is not spoken. The two founder lines (2:21 in the pitch, 0:31 in the update) are drafted from
+the founder's public GitHub history; read them once and change anything that
+is not right. **[after deploy]** marks a
 shot that needs the program live on mainnet.
 
 At 150 words a minute, the pitch runs about 2:45 and the walkthrough about 2:55. Read
@@ -35,7 +36,7 @@ face carries the opening, the "why" and the close. The deck carries the rest.
 | 1:38 | Slide 7 | It's one Solana program, written with Pinocchio. 9,296 bytes, small enough to deploy to mainnet for under 0.05 SOL. Every rule is checked on-chain, and 26 tests attack those rules against the compiled program. |
 | 1:53 | Slide 8 | At least eight Solana affiliate projects entered earlier Colosseum hackathons. None placed. [S7] Three of them promised instant payouts, and no brand accepts that while one online order in five comes back. Commish keeps the refund window and guarantees the money inside it. |
 | 2:08 | Slide 9 | US brands are forecast to spend about fourteen billion dollars on affiliate marketing this year. [S3] Our plan is a one percent fee on each payout. If one percent of that spend settled here, that's about 1.4 million dollars a year. |
-| 2:21 | Founder on camera | I built the program, the app in four languages and the tests myself, over five days of public commits. **[fill: one or two sentences on why you started Commish, something you saw or lived with affiliate payouts.]** |
+| 2:21 | Founder on camera | I built the program, the app in four languages and the tests myself, over five days of public commits. This month I've built escrow programs on Solana: a freelance escrow, a Token-2022 escrow, EscrowKita. Commish points the same idea at creators, whose money is owed but held by someone else. |
 | 2:35 | Founder on camera, then slide 11 | Next is the mainnet deploy and a first live campaign, then ten pilots with Solana apps that already pay creators. If you run an affiliate program, try it at getcommish dot vercel dot app. |
 
 ---
@@ -68,7 +69,7 @@ For X and the Colosseum weekly update. Shot on a phone, held vertically.
 | 0:06 | It's Commish. It holds an affiliate commission in USDC until the shop's refund window closes. Then anyone can pay it out. |
 | 0:14 | How I cut it: I rebuilt Rust's core library with panics stripped, read accounts in place instead of copying them, and let the client pass the address bumps and rent. |
 | 0:26 | The deploy cost went from about 0.13 SOL to 0.049. |
-| 0:31 | **[fill: what you will ship next week.]** |
+| 0:31 | Next week: the program goes live on mainnet, and I record the first real campaign. |
 | 0:38 | The code is open. Link's in the post. |
 
 The first build size (25,664 bytes) and the deploy costs are our own
