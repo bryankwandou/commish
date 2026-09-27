@@ -1,8 +1,8 @@
 const pptxgen = require("pptxgenjs");
 const { F, M, C, base, badge, source, card } = require("./lib.js");
 
-const slideConfig = {"type": "content", "index": 10, "title": "One founder built the program, app and tests in five days."};
-const NOTES = "I'm Bryan Kwandou. I built Commish on my own: the program, the app in four languages and the tests, across five days of public commits. I also publish open-source tools for decks, writing and video editing. The code is the proof, and all of it is on GitHub. The next step is real campaigns.";
+const slideConfig = {"type": "content", "index": 10, "title": "Built by a creator who gets paid on other people's schedules."};
+const NOTES = "I'm Bryan Kwandou. I've sold my own art on Objkt since 2022 and on Drip since 2024, and I earn through Shutterstock and Upwork, so every payout I get runs on someone else's schedule. I study informatics in Makassar and lead the Superteam campus club there. I built Commish's program, app and tests myself.";
 
 // MUST stay synchronous: compile.js does not await.
 function createSlide(pres, theme) {
@@ -10,11 +10,11 @@ function createSlide(pres, theme) {
   slide.addShape(pres.shapes.OVAL, { x: 0.6, y: 2.05, w: 1.1, h: 1.1, fill: { color: C.panel }, line: { color: theme.accent, width: 1.5 } });
   slide.addText("BK", { x: 0.6, y: 2.05, w: 1.1, h: 1.1, margin: 0, align: "center", valign: "middle", fontSize: 26, fontFace: F, bold: true, color: theme.accent });
   slide.addText("Bryan Kwandou", { x: 1.95, y: 2.2, w: 5, h: 0.45, margin: 0, fontSize: 20, fontFace: F, bold: true, color: theme.primary });
-  slide.addText("Founder", { x: 1.95, y: 2.65, w: 5, h: 0.35, margin: 0, fontSize: 13, fontFace: F, color: theme.secondary });
+  slide.addText("Founder · Makassar, Indonesia", { x: 1.95, y: 2.65, w: 5, h: 0.35, margin: 0, fontSize: 13, fontFace: F, color: theme.secondary });
   const proof = [
-    ["BUILT", "The Pinocchio program, the four-language app and 26 tests"],
-    ["SHIPS", "Open-source tools for builders: Plinth, Lugas, Splicecraft"],
-    ["CODE", "github.com/bryankwandou/commish, every commit public"],
+    ["CREATOR", "NFT art on Objkt since 2022 and Drip since 2024; Shutterstock, Upwork"],
+    ["BUILDER", "Informatics, Atma Jaya Makassar; Superteam campus lead"],
+    ["SHIPPED", "The program, the app and 26 tests: github.com/bryankwandou/commish"],
   ];
   proof.forEach(([k, v], i) => {
     const y = 3.45 + i * 0.5;
