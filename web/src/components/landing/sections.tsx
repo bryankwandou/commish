@@ -38,13 +38,6 @@ export function Hero() {
       <div className="glow pointer-events-none absolute inset-0" />
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 pb-20 pt-14 lg:grid-cols-[1.05fr_1fr] lg:pt-20">
         <div>
-          <motion.p initial={reduce ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mb-5 inline-flex items-center gap-2 rounded-full border border-line bg-surface/60 px-3 py-1 text-xs text-muted">
-            <span className="relative flex size-2">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-paid opacity-60" />
-              <span className="relative inline-flex size-2 rounded-full bg-paid" />
-            </span>
-            {t.hero.kicker}
-          </motion.p>
           <h1 className="text-balance text-[2.6rem] font-semibold leading-[1.02] tracking-[-0.045em] sm:text-6xl">
             {words.map((w, i) => (
               <motion.span
