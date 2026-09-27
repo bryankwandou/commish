@@ -1,5 +1,55 @@
 # Commish video scripts
 
+# Colosseum submission cuts (use these first)
+
+Colosseum's form sets two limits: the **pitch video is at most 2 minutes** and
+must introduce the founder and why you are the person to build this; the
+**demo video is at most 3 minutes** and must show the live product, not
+slides and not code. The two scripts below fit those limits. The longer
+scripts further down are for YouTube and the weekly posts.
+
+## A. Pitch video, 2:00 (founder on camera the whole time)
+
+| Time | Say |
+| --- | --- |
+| 0:00 | Hi, I'm Bryan, from Makassar, Indonesia. I'm building Commish. |
+| 0:05 | Amazon pays its affiliates about sixty days after the month closes. Until then, what a creator earned is a line in the brand's spreadsheet. The brand can change terms, pay late, or not pay at all. |
+| 0:20 | Brands hold commission for a fair reason: about one in five online orders comes back. Nobody wants to pay commission on a refund. The hold is fair. What's missing is a guarantee. |
+| 0:33 | Commish puts that guarantee on Solana. The brand funds a USDC vault. When a referred sale is recorded, the creator's cut is locked in its own account. The brand can't take it back. When the refund window closes, anyone can release it, and it can only go to the creator. |
+| 0:52 | A creator who can't wait can sell the pending commission today, in one transaction. The buyer collects at release. |
+| 1:02 | It's live on mainnet. One Pinocchio program, 9,296 bytes, deployed for under 0.05 SOL, with 26 tests that attack every rule. |
+| 1:14 | Why me? I'm a creator. I've sold my art on Objkt since 2022 and on Drip since 2024, and I earn through Shutterstock and Upwork. Every payout I get runs on someone else's schedule. I study informatics, I lead the Superteam campus club, and I built the program, the app and the tests myself. |
+| 1:38 | At least eight Solana affiliate projects tried before. They promised instant payouts, and brands can't accept that while orders get refunded. Commish keeps the refund window and guarantees the money inside it. |
+| 1:50 | Next: a first live campaign and ten pilots with Solana apps that already pay creators. I'm Bryan, this is Commish. |
+
+About 290 words. Read it at a relaxed pace and it lands at 1:55.
+
+## B. Demo video, 3:00 (screen recording of getcommish.vercel.app, founder's voice)
+
+| Time | Screen | Say |
+| --- | --- | --- |
+| 0:00 | Landing page, dark theme | This is Commish, live on Solana mainnet at getcommish dot vercel dot app. I'll create a campaign as a brand, record a sale, and collect it as a creator. |
+| 0:12 | Scroll the commission card animation | Here's one commission: a 250 dollar order at ten percent, so 25 USDC is held until the refund window closes. |
+| 0:25 | Click Connect wallet, pick Phantom | I connect a wallet. The site never holds a key; every transaction is signed here. |
+| 0:35 | Brand console, New campaign: rate 10%, window 7 days, attestor = my wallet | As a brand, I set the rate, the refund window and who records sales. |
+| 0:50 | Approve in wallet, then the Explorer link | One transaction creates the campaign and its USDC vault. Here it is on Solana Explorer. |
+| 1:02 | Deposit 50 USDC | I fund the vault with 50 USDC. |
+| 1:12 | Record sale: order id, total 250, creator wallet | When a referred order is paid, the brand records it. The program computes the cut itself: 25 USDC, now reserved. |
+| 1:30 | Withdraw: try 50, see only 25 allowed | The brand tries to take everything back. It can only withdraw what isn't reserved. The creator's 25 stays locked. |
+| 1:45 | Open the public campaign page | Anyone can see the budget and every open commission, so a creator can check a brand before promoting it. |
+| 1:57 | Switch wallet, Creator desk | Now I'm the creator. My desk shows every commission I'm owed, and when each one is due. |
+| 2:10 | Early payout panel, price 24.25 | If I need the money now, I can sell this commission to a buyer for 24.25 today. The buyer collects the full 25 at release. |
+| 2:25 | Release on a due commission (0-day window campaign) | When the window closes, release needs no signer. One click, and the USDC lands in my wallet. |
+| 2:40 | Language switcher: Bahasa Indonesia, 中文; theme toggle | It works in four languages, in light and dark, on a phone. |
+| 2:50 | Landing page | Commissions that pay themselves. Commish. |
+
+Record it on mainnet with small amounts (1 to 5 USDC works the same way;
+say the real numbers you use). For the release shot, use a campaign with a
+0-day refund window so the commission is due at once.
+
+---
+
+
 Three videos. Colosseum requires the first two; the third is for the weekly
 progress posts on X.
 
