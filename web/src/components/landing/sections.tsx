@@ -18,7 +18,7 @@ import {
   Plus,
   Route,
   Timer,
-  Vault,
+  PiggyBank,
   Wallet,
 } from "lucide-react";
 import { useI18n } from "../providers";
@@ -168,7 +168,7 @@ export function Problem() {
 
 export function How() {
   const { t } = useI18n();
-  const icons = [Vault, Fingerprint, Timer, Wallet];
+  const icons = [PiggyBank, Fingerprint, Timer, Wallet];
   const tones = ["text-text", "text-text", "text-held", "text-paid"];
   return (
     <section id="how" className="scroll-mt-20 border-y border-line bg-bg-2/50 py-24">
@@ -324,7 +324,7 @@ export function Sides() {
 
 // --------------------------------------------------------------- integrate
 
-const CODE_TS = `// web/src/lib/commish/program.ts in the Commish repository
+const CODE_TS = `// Copy web/src/lib/commish/program.ts from the Commish repository.
 import { orderHash, recordSaleIx, COMMISSION_LEN } from "./commish/program";
 
 // Called by your shop when a referred order is paid.
@@ -337,9 +337,9 @@ const { instruction } = await recordSaleIx({
   orderHash: hash,
   orderAmount: 250_000000n,     // 250.00 USDC, 6 decimals
   creator: referrerWallet,
-  lamports: await rpc.getMinimumBalanceForRentExemption(COMMISSION_LEN),
+  lamports: await rpc.getMinimumBalanceForRentExemption(BigInt(COMMISSION_LEN)).send(),
 });
-await sendAndConfirm([instruction], [attestor]);`;
+await sendAndConfirm([instruction], [attestor]); // your usual send helper`;
 
 const CODE_HOOK = `order.paid      → record_sale   (reserve the cut)
 order.refunded  → cancel        (only inside the window)
