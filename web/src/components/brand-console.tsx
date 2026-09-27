@@ -27,6 +27,7 @@ import {
   randomCampaignId,
   recordSaleIx,
   releaseIx,
+  TREASURY,
   tokenTransferIx,
   withdrawIx,
 } from "@/lib/commish/program";
@@ -369,9 +370,11 @@ export function CommissionRow({ m, c, canCancel, onDone }: { m: CommissionJson; 
   const release = () =>
     tx.run(async () => {
       const payeeToken = await findAta(m.payee as Address, c.mint as Address);
+      const treasuryToken = await findAta(TREASURY, c.mint as Address);
       return send([
         createAtaIx(me!, payeeToken, m.payee as Address, c.mint as Address),
-        releaseIx({ campaign: c.address as Address, vault: c.vault as Address, commission: m.address as Address, payeeToken, rentPayer: m.rentPayer as Address }),
+        createAtaIx(me!, treasuryToken, TREASURY, c.mint as Address),
+        releaseIx({ campaign: c.address as Address, vault: c.vault as Address, commission: m.address as Address, payeeToken, rentPayer: m.rentPayer as Address, treasuryToken }),
       ]);
     }, onDone);
   const cancel = () =>
