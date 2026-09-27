@@ -1,0 +1,3 @@
+Commish holds an affiliate commission in USDC on Solana from the moment the sale is recorded until the refund window closes, then anyone can pay it out. A creator who can't wait sells it for cash today. One 9,296-byte program, open source: getcommish.vercel.app
+
+Music: "Happy Beats / Business Moves Vol. 10" by Sascha Ende (ende.app), CC BY 4.0. Sound effects: Kenney (CC0).
