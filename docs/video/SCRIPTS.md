@@ -17,7 +17,7 @@ scripts further down are for YouTube and the weekly posts.
 | 0:20 | Brands hold commission for a fair reason: about one in five online orders comes back. Nobody wants to pay commission on a refund. The hold is fair. What's missing is a guarantee. |
 | 0:33 | Commish puts that guarantee on Solana. The brand funds a USDC vault. When a referred sale is recorded, the creator's cut is locked in its own account. The brand can't take it back. When the refund window closes, anyone can release it, and it can only go to the creator. |
 | 0:52 | A creator who can't wait can sell the pending commission today, in one transaction. The buyer collects at release. |
-| 1:02 | It's live on mainnet. One Pinocchio program, 9,296 bytes, deployed for under 0.05 SOL, with 26 tests that attack every rule. |
+| 1:02 | It's live on mainnet. One Pinocchio program, 9,296 bytes, deployed for under 0.05 SOL, with 28 tests that attack every rule. |
 | 1:14 | Why me? I'm a creator. I've sold my art on Objkt since 2022 and on Drip since 2024, and I earn through Shutterstock and Upwork. Every payout I get runs on someone else's schedule. I study informatics, I lead the Superteam campus club, and I built the program, the app and the tests myself. |
 | 1:38 | At least eight Solana affiliate projects tried before. They promised instant payouts, and brands can't accept that while orders get refunded. Commish keeps the refund window and guarantees the money inside it. |
 | 1:50 | Next: a first live campaign and ten pilots with Solana apps that already pay creators. I'm Bryan, this is Commish. |
