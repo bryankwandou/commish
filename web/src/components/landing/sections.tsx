@@ -230,8 +230,7 @@ export function Early() {
   const [days, setDays] = useState(21);
   const [disc, setDisc] = useState(2.5);
   const get = amount * (1 - disc / 100);
-  const collect = amount * 0.99; // the 1% protocol fee comes out at release
-  const apr = useMemo(() => (get > 0 ? (collect / get - 1) * (365 / days) * 100 : 0), [collect, get, days]);
+  const apr = useMemo(() => (get > 0 ? (amount / get - 1) * (365 / days) * 100 : 0), [amount, get, days]);
   const money = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   return (
     <section id="early" className="scroll-mt-20 border-y border-line bg-bg-2/50 py-24">
@@ -246,7 +245,7 @@ export function Early() {
           <div className="rounded-2xl border border-line bg-surface p-6">
             <Slider label={t.early.commission} value={amount} set={setAmount} min={10} max={2000} step={10} show={`${money(amount)} USDC`} />
             <Slider label={t.early.days} value={days} set={setDays} min={1} max={90} step={1} show={`${days}`} />
-            <Slider label={t.early.discount} value={disc} set={setDisc} min={1.5} max={10} step={0.5} show={`${disc.toFixed(1)}%`} />
+            <Slider label={t.early.discount} value={disc} set={setDisc} min={0.5} max={10} step={0.5} show={`${disc.toFixed(1)}%`} />
             <div className="mt-6 grid grid-cols-2 gap-3">
               <div className="rounded-xl border border-early/40 bg-early/10 p-4">
                 <p className="text-xs text-muted">{t.early.youGet}</p>
@@ -257,7 +256,7 @@ export function Early() {
               <div className="rounded-xl border border-line bg-bg-2 p-4">
                 <p className="text-xs text-muted">{t.early.buyerGets}</p>
                 <p className="mt-1 text-2xl font-semibold tracking-tight">
-                  <Counter value={collect} format={money} />
+                  <Counter value={amount} format={money} />
                 </p>
               </div>
             </div>
