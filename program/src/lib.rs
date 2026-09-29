@@ -144,7 +144,9 @@ pub unsafe extern "C" fn entrypoint(input: *mut u8) -> u64 {
     for i in 0..n {
         let a = match ctx.next_account_unchecked() {
             MaybeAccount::Account(a) => a,
-            MaybeAccount::Duplicated(j) => slots[j as usize].assume_init_ref().clone(),
+            // The runtime only marks an account as a duplicate of an earlier
+        // one, so slot `j` (j < i) is already written.
+        MaybeAccount::Duplicated(j) => slots.get_unchecked(j as usize).assume_init_ref().clone(),
         };
         slots[i].write(a);
     }
@@ -285,7 +287,7 @@ fn campaign(a: &AccountView) -> R<&mut Campaign> {
 }
 
 /// A commission together with the campaign it belongs to.
-#[inline(always)]
+#[inline(never)]
 fn commission<'a>(camp: &'a AccountView, com: &'a AccountView) -> R<(&'a mut Campaign, &'a mut Commission)> {
     let c = campaign(camp)?;
     // SAFETY: as in `campaign`.
@@ -377,6 +379,13 @@ fn create(payer: &AccountView, acct: &AccountView, seed: &[u8], a: &Key, b: &[u8
     ok(rec(acct, &ID, len, 0))
 }
 
+/// Write a record's tag, version and bump in one store.
+#[inline(always)]
+fn header(p: *mut u8, tag: u8, bump: u8) {
+    // SAFETY: `p` is a freshly created record, 8-byte aligned.
+    unsafe { *(p as *mut u32) = tag as u32 | (VERSION as u32) << 8 | (bump as u32) << 16 };
+}
+
 /// Move every lamport of `acct` to `to` and close it.
 #[inline(never)]
 fn close(acct: &AccountView, to: &AccountView) {
@@ -407,9 +416,7 @@ fn create_campaign(a: &[AccountView], x: &CreateArgs) -> R {
     let p = create(brand, camp, b"campaign", addr(brand), &id, x.bump, x.lamports, CAMPAIGN_LEN)?;
     // SAFETY: freshly allocated, owned by us, CAMPAIGN_LEN zeroed bytes.
     let c = unsafe { &mut *(p as *mut Campaign) };
-    c.tag = TAG_CAMPAIGN;
-    c.version = VERSION;
-    c.bump = x.bump;
+    header(p, TAG_CAMPAIGN, x.bump);
     cp(&mut c.brand, addr(brand));
     cp(&mut c.attestor, &x.attestor);
     cp(&mut c.mint, addr(mint));
@@ -440,9 +447,7 @@ fn record_sale(a: &[AccountView], x: &SaleArgs) -> R {
     let p = create(payer, com, b"commission", addr(camp), &x.order_hash, x.bump, x.lamports, COMMISSION_LEN)?;
     // SAFETY: freshly allocated, owned by us, COMMISSION_LEN zeroed bytes.
     let m = unsafe { &mut *(p as *mut Commission) };
-    m.tag = TAG_COMMISSION;
-    m.version = VERSION;
-    m.bump = x.bump;
+    header(p, TAG_COMMISSION, x.bump);
     cp(&mut m.campaign, addr(camp));
     cp(&mut m.creator, &x.creator);
     cp(&mut m.payee, &x.creator);

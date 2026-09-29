@@ -502,8 +502,8 @@ describe("binary", () => {
     const size = statSync(SO).size;
     console.log(`\n  program binary: ${size} bytes`);
     for (const [k, v] of Object.entries(cu)) console.log(`  ${k.padEnd(30)} ${v} CU`);
-    // First deploy (9,296 bytes) fit the 0.05 SOL budget. The 1% fee adds about
-    // 224 bytes, paid once as an upgrade extension (about 0.0012 SOL).
-    assert.ok(size <= 9_600, `binary is ${size} bytes; the upgrade budget allows 9,600`);
+    // The first deploy sized the program account at 9,296 bytes; staying under
+    // it lets an upgrade reuse that account without paying to extend it.
+    assert.ok(size <= 9_296, `binary is ${size} bytes; the deployed program account holds 9,296`);
   });
 });
