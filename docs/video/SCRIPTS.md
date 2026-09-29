@@ -151,7 +151,7 @@ order: `pitch-01.mp4`, `pitch-02.mp4`, `walkthrough-01.mp4`, `update-01.mp4`.
 **Editing, once the files are here:**
 
 ```bash
-SC="python ~/.claude/skills/splicecraft/scripts/splicecraft.py"
+SC="python tools/splicecraft.py"
 # Pitch: light edit, 16:9, Commish colors
 $SC auto pitch.mp4 -d work-pitch --level 35 --genre auto --size 1920x1080 --brand docs/video/brand.json --language en
 # Technical walkthrough: captions and clean audio only
