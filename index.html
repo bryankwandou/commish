@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Commish Wallet Check</title>
+<style>
+  :root { --bg:#fff; --fg:#111; --muted:#666; --card:#f4f4f5; --ok:#15803d; --bad:#b91c1c; --btn:#111; --btnfg:#fff; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0b0b0c; --fg:#eee; --muted:#999; --card:#1a1a1d; --ok:#4ade80; --bad:#f87171; --btn:#eee; --btnfg:#111; } }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.5 system-ui, sans-serif; }
+  main { max-width:560px; margin:0 auto; padding:24px 16px; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  p { color:var(--muted); margin:0 0 16px; }
+  .card { background:var(--card); border-radius:12px; padding:16px; margin:12px 0; word-break:break-all; }
+  button { background:var(--btn); color:var(--btnfg); border:0; border-radius:10px; padding:12px 16px; font-size:16px; margin:4px 4px 4px 0; cursor:pointer; }
+  .ok { color:var(--ok); font-weight:600; } .bad { color:var(--bad); font-weight:600; }
+  code { font-size:13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Commish: cek wallet</h1>
+  <p>Halaman ini hanya membaca alamat wallet. Tidak ada transaksi, tidak ada tanda tangan, tidak ada dana yang bergerak.</p>
+
+  <div class="card">
+    <div>Alamat yang dicari (pemegang hak upgrade):</div>
+    <code id="target"></code>
+  </div>
+
+  <div id="wallets" class="card">Mencari wallet...</div>
+  <div id="result" class="card" hidden></div>
+  <div id="chain" class="card">Membaca mainnet...</div>
+</main>
+<script>
+const TARGET = "ETcQvsQek2w9feLfsqoe4AypCWfnrSwQiv3djqocaP2m";
+const PROGRAM = "CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB";
+const BUFFER = "EhkbKLqeXVTGcANX65te2vExRUP7t1S1FxBA1DFBtHh1";
+const RPC = "https://api.mainnet-beta.solana.com";
+document.getElementById("target").textContent = TARGET;
+
+// Wallet Standard discovery (Jupiter, Phantom, Solflare, Backpack all register this way)
+const found = new Map();
+function register(...ws) { ws.forEach(w => { if (w.features && w.features["standard:connect"]) found.set(w.name, w); }); render(); return () => {}; }
+window.addEventListener("wallet-standard:register-wallet", e => e.detail({ register }));
+window.dispatchEvent(new CustomEvent("wallet-standard:app-ready", { detail: { register } }));
+
+function render() {
+  const box = document.getElementById("wallets");
+  if (!found.size) { box.textContent = "Belum ada wallet terdeteksi. Buka halaman ini di browser bawaan aplikasi Jupiter, atau di browser yang terpasang ekstensi Jupiter Wallet."; return; }
+  box.innerHTML = "<div>Pilih wallet untuk dihubungkan:</div>";
+  for (const [name, w] of found) {
+    const b = document.createElement("button");
+    b.textContent = "Hubungkan " + name;
+    b.onclick = () => connect(w);
+    box.appendChild(b);
+  }
+}
+setTimeout(render, 1500);
+
+async function connect(w) {
+  const out = document.getElementById("result");
+  out.hidden = false;
+  out.textContent = "Menghubungkan ke " + w.name + "...";
+  try {
+    const { accounts } = await w.features["standard:connect"].connect();
+    const addrs = (accounts && accounts.length ? accounts : w.accounts).map(a => a.address);
+    const hit = addrs.includes(TARGET);
+    out.innerHTML = "<div>Wallet: " + w.name + "</div><div>Alamat terhubung:</div>" +
+      addrs.map(a => "<code>" + a + "</code>").join("<br>") +
+      (hit
+        ? '<p class="ok" style="margin-top:12px">COCOK. Wallet ini memegang hak upgrade Commish. Akses tidak hilang.</p>'
+        : '<p class="bad" style="margin-top:12px">TIDAK COCOK. Akun yang aktif bukan ' + TARGET.slice(0,4) + "..." + TARGET.slice(-4) + ". Kalau Jupiter punya beberapa akun, ganti akun di Jupiter lalu hubungkan lagi.</p>");
+  } catch (e) {
+    out.innerHTML = '<span class="bad">Gagal terhubung: ' + (e && e.message ? e.message : e) + "</span>";
+  }
+}
+
+async function rpc(method, params) {
+  const r = await fetch(RPC, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }) });
+  return (await r.json()).result;
+}
+(async () => {
+  const el = document.getElementById("chain");
+  try {
+    const [wal, buf] = await Promise.all([rpc("getBalance", [TARGET]), rpc("getBalance", [BUFFER])]);
+    el.innerHTML = "<div>Status mainnet sekarang:</div>" +
+      "<div>Saldo wallet " + TARGET.slice(0,4) + "..." + TARGET.slice(-4) + ": <b>" + (wal.value / 1e9) + " SOL</b></div>" +
+      "<div>Dana terkunci di akun upload " + BUFFER.slice(0,5) + "...: <b>" + (buf.value / 1e9) + " SOL</b></div>" +
+      "<div>Program: <code>" + PROGRAM + "</code></div>";
+  } catch (e) { el.textContent = "Gagal membaca mainnet: " + e; }
+})();
+</script>
+</body>
+</html>
