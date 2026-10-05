@@ -10,7 +10,7 @@
 [![Live App](https://img.shields.io/badge/Live%20App-getcommish.vercel.app-111111?logo=vercel&logoColor=white)](https://getcommish.vercel.app)
 [![Pinocchio](https://img.shields.io/badge/Pinocchio-0.11-FF6B00)](https://github.com/anza-xyz/pinocchio)
 [![Program size](https://img.shields.io/badge/Program-9%2C296%20bytes-2F80ED)](#the-program)
-[![Tests](https://img.shields.io/badge/Tests-31%20passing-2EA043)](#guarantees-and-the-tests-that-attack-them)
+[![Tests](https://img.shields.io/badge/Tests-32%20passing-2EA043)](#guarantees-and-the-tests-that-attack-them)
 [![Security Review](https://img.shields.io/badge/Security-Internal%20Review-blue)](SECURITY.md)
 [![USDC](https://img.shields.io/badge/Token-USDC-2775CA)](https://explorer.solana.com/address/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
@@ -41,7 +41,7 @@
 | **NON-CUSTODIAL** | Funds sit in program-owned vaults. No server, and not the Commish team, can move them |
 | **NO BACKEND KEYS** | The website holds no private key. Every transaction is signed in the user's wallet |
 | **WORKS WITHOUT THE WEBSITE** | `release` needs no signer, so a due commission can be paid from any Solana client |
-| **INTERNAL REVIEWED & ATTACK-TESTED** | Internal line-by-line review completed (no external third-party audit yet); 31 compiled-binary attack tests and a 41-check local validator lifecycle run passed |
+| **INTERNAL REVIEWED & ATTACK-TESTED** | Internal line-by-line review completed (no external third-party audit yet); 32 compiled-binary attack tests and a 41-check local validator lifecycle run passed |
 | **MULTILINGUAL** | English, Bahasa Indonesia, Español, 中文; light and dark themes; phone-first layout |
 
 ---
@@ -311,7 +311,7 @@ to 9,296 bytes without removing a feature or a check:
 - Checked arithmetic where an input can overflow; invariant-based arithmetic
   only where the invariant is enforced on the way in.
 
-The 31 tests run against this exact build, so the size work is tested, not
+The 32 tests run against this exact build, so the size work is tested, not
 assumed.
 
 ### Accounts
@@ -395,14 +395,15 @@ validator with mainnet's feature set, and passed **41 of 41** checks
 | --- | --- |
 | Program account | [CmSHpw9Q…w8D79Z8jjhWmPJfFB](https://explorer.solana.com/address/CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB) |
 | Deploy transaction | [vZRdesXg…2xWPk9Cv6](https://explorer.solana.com/tx/vZRdesXgmPhV15JwAHy5akzcsn5AWssFYGne5mCcbEcDqJufqxwZWzwSUXHbUoNKBEzaMaryR1h2kB2xWPk9Cv6) |
+| Upgrade transaction (finding #1 fix, 2026-10-05) | [3TKdDeWE…B5gChVbH](https://explorer.solana.com/tx/3TKdDeWEeKgsBA5skKqYHnzE8zkFDuUA54j7szYbx4Ejaarx2ZFyGBNkV7S5u5gQ18RQTwLM5DA6tQS2B5gChVbH) |
 | Upgrade authority | [42azYTNi…4xQAtEPfUe](https://explorer.solana.com/address/42azYTNiC4bp6UtXXpEQ49adNWBbM6Hhx84xQAtEPfUe), a single key |
-| Deployed binary hash | `sha256 126d294003644c26ee27d90e5cbfc09c0c9c5ca996906ba3bf8c5a416f852ac8` (9,280 bytes; the program account is 9,296 bytes, the last 16 are zero padding). Matched against a local build of this source on 2026-10-05. |
+| Deployed binary hash | `sha256 6a88a6d02bb2e41151340c7283890d2130a2e8d85c7dcce810f7d8b4c0ffb4f5` (9,272 bytes; the program account is 9,296 bytes, the rest is zero padding). Matched against a local build of this source after the 2026-10-05 upgrade. |
 
 To verify the binary yourself:
 
 ```bash
 solana program dump CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB onchain.so -u m
-head -c 9280 onchain.so | sha256sum
+head -c 9272 onchain.so | sha256sum
 cd program && npm run build && sha256sum target/deploy/commish.so
 ```
 
@@ -446,8 +447,8 @@ Program (needs the Solana CLI with `cargo build-sbf`):
 ```bash
 cd program
 npm ci
-npm run build   # target/deploy/commish.so, 9,296 bytes
-npm test        # 31 tests against the compiled binary
+npm run build   # target/deploy/commish.so, 9,272 bytes
+npm test        # 32 tests against the compiled binary
 ```
 
 App:
@@ -517,15 +518,13 @@ adversarial behaviour. The review and fixes were done by AI agents working
 from the maintainer's requests, prompted by a Superteam Earn bug-bounty report;
 the maintainer opened every pull request by hand. This is not a third-party audit.
 
-- 31 tests against the compiled program binary
+- 32 tests against the compiled program binary
 - 41 of 41 lifecycle and attack checks on a local validator
 - the pre-funding griefing scenario reproduced; the keyed HMAC-SHA-256
   mitigation shown to hold
 - the deployed mainnet binary compared byte for byte with a build of this source
-- residual findings documented, including one Medium (mitigated in the client;
-  program-side fix written and tested on branch
-  [`fix/prefund-onchain`](https://github.com/bryankwandou/commish/tree/fix/prefund-onchain), not deployed yet; the upgrade is not funded
-  yet)
+- findings documented, including one Medium (pre-funding), now fixed in the
+  program on mainnet (upgrade [`3TKdDeWE…B5gChVbH`](https://explorer.solana.com/tx/3TKdDeWEeKgsBA5skKqYHnzE8zkFDuUA54j7szYbx4Ejaarx2ZFyGBNkV7S5u5gQ18RQTwLM5DA6tQS2B5gChVbH)), on top of the client-side HMAC
 
 Full record: [docs/INTERNAL_SECURITY_AUDIT.md](docs/INTERNAL_SECURITY_AUDIT.md).
 Reporting policy: [SECURITY.md](SECURITY.md).
@@ -654,7 +653,7 @@ Music: "Happy Beats / Business Moves" Vol. 10 and Vol. 12 by Sascha Ende
 | **NON-KUSTODIAL** | Dana ada di vault milik program. Tidak ada server, termasuk tim Commish, yang bisa memindahkannya |
 | **TANPA KUNCI DI SERVER** | Website tidak menyimpan private key. Setiap transaksi ditandatangani di wallet pengguna |
 | **TETAP JALAN TANPA WEBSITE** | `release` tidak butuh penanda tangan, jadi komisi yang jatuh tempo bisa dibayar dari klien Solana mana pun |
-| **REVIEW INTERNAL & DIUJI DENGAN SERANGAN** | Pemeriksaan internal baris-per-baris selesai (belum ada audit independen pihak ketiga); 31 tes serangan binary dan 41 pemeriksaan siklus penuh lolos di validator lokal |
+| **REVIEW INTERNAL & DIUJI DENGAN SERANGAN** | Pemeriksaan internal baris-per-baris selesai (belum ada audit independen pihak ketiga); 32 tes serangan binary dan 41 pemeriksaan siklus penuh lolos di validator lokal |
 | **MULTIBAHASA** | English, Bahasa Indonesia, Español, 中文; tema terang dan gelap; tata letak untuk ponsel |
 
 ---
@@ -830,7 +829,7 @@ Build pertama berukuran 25.664 byte (sekitar 0,13 SOL). Ukurannya turun ke
   sewa minimum.
 - Aritmetika checked untuk input yang bisa overflow.
 
-31 tes berjalan terhadap build yang persis sama, jadi pengecilan ukuran ini
+32 tes berjalan terhadap build yang persis sama, jadi pengecilan ukuran ini
 sudah diuji, bukan diasumsikan.
 
 | # | Instruksi | Penanda tangan | Fungsi | Compute unit |
@@ -883,8 +882,9 @@ mainnet, dan lolos **41 dari 41** pemeriksaan
 | --- | --- |
 | Akun program | [CmSHpw9Q…w8D79Z8jjhWmPJfFB](https://explorer.solana.com/address/CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB) |
 | Transaksi deploy | [vZRdesXg…2xWPk9Cv6](https://explorer.solana.com/tx/vZRdesXgmPhV15JwAHy5akzcsn5AWssFYGne5mCcbEcDqJufqxwZWzwSUXHbUoNKBEzaMaryR1h2kB2xWPk9Cv6) |
+| Transaksi upgrade (perbaikan temuan #1, 2026-10-05) | [3TKdDeWE…B5gChVbH](https://explorer.solana.com/tx/3TKdDeWEeKgsBA5skKqYHnzE8zkFDuUA54j7szYbx4Ejaarx2ZFyGBNkV7S5u5gQ18RQTwLM5DA6tQS2B5gChVbH) |
 | Upgrade authority | [42azYTNi…4xQAtEPfUe](https://explorer.solana.com/address/42azYTNiC4bp6UtXXpEQ49adNWBbM6Hhx84xQAtEPfUe), satu kunci |
-| Hash binary | `sha256 126d294003644c26ee27d90e5cbfc09c0c9c5ca996906ba3bf8c5a416f852ac8` (9.280 byte; akun program 9.296 byte, 16 byte terakhir padding nol). Dicocokkan dengan build lokal dari source ini pada 2026-10-05. |
+| Hash binary | `sha256 6a88a6d02bb2e41151340c7283890d2130a2e8d85c7dcce810f7d8b4c0ffb4f5` (9.272 byte; akun program 9.296 byte, sisanya padding nol). Dicocokkan dengan build lokal dari source ini setelah upgrade 2026-10-05. |
 
 Perintah untuk memverifikasi sendiri ada di bagian [On-Chain Proof](#on-chain-proof).
 
@@ -925,8 +925,8 @@ Perintah untuk memverifikasi sendiri ada di bagian [On-Chain Proof](#on-chain-pr
 ```bash
 # Program
 cd program && npm ci
-npm run build   # target/deploy/commish.so, 9.296 byte
-npm test        # 31 tes terhadap binary hasil kompilasi
+npm run build   # target/deploy/commish.so, 9.272 byte
+npm test        # 32 tes terhadap binary hasil kompilasi
 
 # Aplikasi
 cd web && npm ci
@@ -973,14 +973,12 @@ Review dan perbaikannya dikerjakan agen AI atas permintaan maintainer, berawal
 dari laporan bug bounty Superteam Earn; setiap pull request dibuka manual oleh
 maintainer. Ini bukan audit pihak ketiga.
 
-- 31 tes terhadap binary program hasil kompilasi
+- 32 tes terhadap binary program hasil kompilasi
 - 41 dari 41 pemeriksaan siklus dan serangan di validator lokal
 - skenario griefing pre-funding direproduksi; mitigasi HMAC-SHA-256 berkunci terbukti bertahan
 - binary di mainnet dibandingkan byte per byte dengan build dari source ini
-- temuan sisa didokumentasikan, termasuk satu Medium (dimitigasi di klien;
-  perbaikan di sisi program sudah ditulis dan dites di branch
-  [`fix/prefund-onchain`](https://github.com/bryankwandou/commish/tree/fix/prefund-onchain), belum di-deploy karena biaya upgrade
-  belum tersedia)
+- temuan didokumentasikan, termasuk satu Medium (pre-funding) yang kini sudah
+  diperbaiki di program mainnet (upgrade [`3TKdDeWE…B5gChVbH`](https://explorer.solana.com/tx/3TKdDeWEeKgsBA5skKqYHnzE8zkFDuUA54j7szYbx4Ejaarx2ZFyGBNkV7S5u5gQ18RQTwLM5DA6tQS2B5gChVbH)), selain HMAC di klien
 
 Catatan lengkap: [docs/INTERNAL_SECURITY_AUDIT.md](docs/INTERNAL_SECURITY_AUDIT.md).
 Kebijakan pelaporan: [SECURITY.md](SECURITY.md).

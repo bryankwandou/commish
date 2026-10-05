@@ -36,7 +36,7 @@ before any public disclosure.
 
 ## Evidence in this repository
 
-- 31 tests against the compiled program binary (`program/test/commish.test.ts`)
+- 32 tests against the compiled program binary (`program/test/commish.test.ts`)
 - 41 of 41 lifecycle and attack checks on a local validator
   ([docs/proof/live-validator-run.md](docs/proof/live-validator-run.md))
 - the pre-funding griefing scenario reproduced, and the keyed HMAC-SHA-256
@@ -48,7 +48,7 @@ before any public disclosure.
 
 | # | Severity | Finding | Status |
 | --- | --- | --- | --- |
-| 1 | Medium | Pre-funding a predictable commission address blocks `record_sale` for that order | Mitigated in the official client: order hashes are HMAC-SHA-256 with a key only the attestor holds. A program-side fix is written and tested on branch [`fix/prefund-onchain`](https://github.com/bryankwandou/commish/tree/fix/prefund-onchain) (32 tests pass) but not deployed: the upgrade needs about 0.005 SOL to extend the program account, and that is not funded yet. |
+| 1 | Medium | Pre-funding a predictable commission address blocks `record_sale` for that order | **Fixed on mainnet** (upgrade [`3TKdDeWE…B5gChVbH`](https://explorer.solana.com/tx/3TKdDeWEeKgsBA5skKqYHnzE8zkFDuUA54j7szYbx4Ejaarx2ZFyGBNkV7S5u5gQ18RQTwLM5DA6tQS2B5gChVbH), 2026-10-05): accounts are created with the System program's `CreateAccountAllowPrefund` (SIMD-0312), so lamports sent to the address first no longer block the sale. The official client also keeps HMAC-SHA-256 order hashes. |
 | 2 | Low | An order hash can be recorded again after its commission closes | Accepted. Only the attestor can record; the guarantee is one open commission per order hash. |
 | 3 | Low (trust) | The attestor can cancel an open commission inside the window, including one sold early | By design: an early buyer owns a claim that holds only if the order survives the refund window. |
 | 4 | Info | USDC has a freeze authority | Outside the program's control. |

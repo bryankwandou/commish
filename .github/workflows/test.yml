@@ -51,7 +51,7 @@ jobs:
       - name: Build matches the mainnet binary
         working-directory: program
         run: |
-          echo "126d294003644c26ee27d90e5cbfc09c0c9c5ca996906ba3bf8c5a416f852ac8  target/deploy/commish.so" | sha256sum -c -
+          echo "6a88a6d02bb2e41151340c7283890d2130a2e8d85c7dcce810f7d8b4c0ffb4f5  target/deploy/commish.so" | sha256sum -c -
 
       - name: LiteSVM tests
         working-directory: program
