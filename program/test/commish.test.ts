@@ -268,6 +268,22 @@ describe("recording sales", () => {
     assert.equal(campaignOf(s.campaign).reserved, USDC(10));
   });
 
+  test("lamports sent to the commission address first cannot block the sale", async () => {
+    for (const [id, sent] of [["grief-small", 1_000_000n], ["grief-large", 10_000_000n]] as const) {
+      const s = await setup();
+      const x = await sale(s, id, USDC(100));
+      svm.airdrop(x.commission, lamports(sent)); // a stranger funds the address first
+      await ok([x.instruction], x.signers, `record_sale after ${sent} lamports were sent first`);
+      const m = commissionOf(x.commission)!;
+      assert.equal(m.amount, USDC(10));
+      assert.equal(m.payee, s.creator.address);
+      const rent = rentCommission();
+      assert.equal(svm.getBalance(x.commission), sent + rent);
+      const again = await sale(s, id, USDC(100));
+      await fails(null, [again.instruction], again.signers);
+    }
+  });
+
   test("only the campaign's attestor can record a sale", async () => {
     const s = await setup();
     const mallory = await signer();
