@@ -20,7 +20,7 @@ await sendAndConfirmTransaction(cx, new Transaction().add(
   new TransactionInstruction({ programId: TOKEN, keys: [{ pubkey: mintKp.publicKey, isSigner: false, isWritable: true }, { pubkey: new PublicKey(brandAta), isSigner: false, isWritable: true }, { pubkey: brand.publicKey, isSigner: true, isWritable: false }], data: d })), [brand, mintKp]);
 const cc = await C.createCampaignIxs({ brand: a(brand), id: C.randomCampaignId(), bps: 1000, holdSeconds: 60n, attestor: a(brand), mint, lamports: BigInt(await cx.getMinimumBalanceForRentExemption(C.CAMPAIGN_LEN)) });
 await sendAndConfirmTransaction(cx, new Transaction().add(...cc.instructions.map(w), w(C.tokenTransferIx(brandAta, cc.vault, a(brand), 50_000_000n))), [brand]);
-const hash = await C.orderHash(cc.campaign, "4822"); // the shop's next sequential order id
+const hash = await C.orderHashUnsafeForUnpredictableIds(cc.campaign, "4822"); // unkeyed predictable sequential order id
 const { commission } = await C.recordSaleIx({ attestor: a(brand), payer: a(brand), campaign: cc.campaign, vault: cc.vault, orderHash: hash, orderAmount: 10_000_000n, creator: a(stranger), lamports: 1n });
 await sendAndConfirmTransaction(cx, new Transaction().add(SystemProgram.transfer({ fromPubkey: stranger.publicKey, toPubkey: new PublicKey(commission), lamports: 1_000_000 })), [stranger]);
 const r = await C.recordSaleIx({ attestor: a(brand), payer: a(brand), campaign: cc.campaign, vault: cc.vault, orderHash: hash, orderAmount: 250_000_000n, creator: a(stranger), lamports: BigInt(await cx.getMinimumBalanceForRentExemption(C.COMMISSION_LEN)) });
@@ -30,7 +30,7 @@ catch (e) { console.log("RESULT unkeyed: record_sale blocked by a stranger's 0.0
 // Keyed hash: the stranger can only guess the unkeyed address, so the attestor's sale goes through.
 const key = crypto.getRandomValues(new Uint8Array(32));
 const keyed = await C.orderHash(cc.campaign, "4823", key);
-const guess = await C.recordSaleIx({ attestor: a(brand), payer: a(brand), campaign: cc.campaign, vault: cc.vault, orderHash: await C.orderHash(cc.campaign, "4823"), orderAmount: 1n, creator: a(stranger), lamports: 1n });
+const guess = await C.recordSaleIx({ attestor: a(brand), payer: a(brand), campaign: cc.campaign, vault: cc.vault, orderHash: await C.orderHashUnsafeForUnpredictableIds(cc.campaign, "4823"), orderAmount: 1n, creator: a(stranger), lamports: 1n });
 await sendAndConfirmTransaction(cx, new Transaction().add(SystemProgram.transfer({ fromPubkey: stranger.publicKey, toPubkey: new PublicKey(guess.commission), lamports: 1_000_000 })), [stranger]);
 const k2 = await C.recordSaleIx({ attestor: a(brand), payer: a(brand), campaign: cc.campaign, vault: cc.vault, orderHash: keyed, orderAmount: 250_000_000n, creator: a(stranger), lamports: BigInt(await cx.getMinimumBalanceForRentExemption(C.COMMISSION_LEN)) });
 try { await sendAndConfirmTransaction(cx, new Transaction().add(w(k2.instruction)), [brand]); console.log("RESULT keyed: record_sale succeeded despite the stranger's transfer"); }

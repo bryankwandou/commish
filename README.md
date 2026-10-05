@@ -10,7 +10,8 @@
 [![Live App](https://img.shields.io/badge/Live%20App-getcommish.vercel.app-111111?logo=vercel&logoColor=white)](https://getcommish.vercel.app)
 [![Pinocchio](https://img.shields.io/badge/Pinocchio-0.11-FF6B00)](https://github.com/anza-xyz/pinocchio)
 [![Program size](https://img.shields.io/badge/Program-9%2C296%20bytes-2F80ED)](#the-program)
-[![Tests](https://img.shields.io/badge/Tests-34%20passing-2EA043)](#guarantees-and-the-tests-that-attack-them)
+[![Tests](https://img.shields.io/badge/Tests-31%20passing-2EA043)](#guarantees-and-the-tests-that-attack-them)
+[![Security Review](https://img.shields.io/badge/Security-Internal%20Review-blue)](SECURITY.md)
 [![USDC](https://img.shields.io/badge/Token-USDC-2775CA)](https://explorer.solana.com/address/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Colosseum](https://img.shields.io/badge/Colosseum-Crypto%20World's%20Fair%202026-FF6B00)](https://www.colosseum.org)
@@ -21,9 +22,10 @@
 |---|---|
 | **Live app** | [getcommish.vercel.app](https://getcommish.vercel.app) (English, Bahasa Indonesia, Español, 中文; light and dark) |
 | **Docs** | [getcommish.vercel.app/en/docs](https://getcommish.vercel.app/en/docs) |
+| **Security Policy** | [SECURITY.md](SECURITY.md) · [Internal Security Audit](docs/INTERNAL_SECURITY_AUDIT.md) |
 | **Program (mainnet)** | [`CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB`](https://explorer.solana.com/address/CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB) |
 | **Deploy transaction** | [`vZRdesXg…2xWPk9Cv6`](https://explorer.solana.com/tx/vZRdesXgmPhV15JwAHy5akzcsn5AWssFYGne5mCcbEcDqJufqxwZWzwSUXHbUoNKBEzaMaryR1h2kB2xWPk9Cv6) |
-| **Upgrade authority** | [`42azYTNiC4bp6UtXXpEQ49adNWBbM6Hhx84xQAtEPfUe`](https://explorer.solana.com/address/42azYTNiC4bp6UtXXpEQ49adNWBbM6Hhx84xQAtEPfUe) (single key; moves to a multisig before real volume) |
+| **Upgrade authority** | [`42azYTNiC4bp6UtXXpEQ49adNWBbM6Hhx84xQAtEPfUe`](https://explorer.solana.com/address/42azYTNiC4bp6UtXXpEQ49adNWBbM6Hhx84xQAtEPfUe) (single-key control; migration to Squads multisig planned before volume) |
 | **Settlement token** | USDC [`EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`](https://explorer.solana.com/address/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v) |
 | **Pitch deck** | [PDF](pitch/commish-pitch.pdf) · [PowerPoint](pitch/commish-pitch.pptx) · [editable PowerPoint](pitch/commish-pitch-editable.pptx) |
 | **Videos** | [Launch video, 23 s](brag-output/brag.mp4) · [Product walkthrough](docs/video/commish-walkthrough.mp4) |
@@ -39,7 +41,7 @@
 | **NON-CUSTODIAL** | Funds sit in program-owned vaults. No server, and not the Commish team, can move them |
 | **NO BACKEND KEYS** | The website holds no private key. Every transaction is signed in the user's wallet |
 | **WORKS WITHOUT THE WEBSITE** | `release` needs no signer, so a due commission can be paid from any Solana client |
-| **ATTACK-TESTED** | 34 tests attack the compiled binary; a 41-check lifecycle run passed on a local validator configured like mainnet |
+| **INTERNAL REVIEWED & ATTACK-TESTED** | Internal line-by-line review completed (no external third-party audit yet); 31 compiled-binary attack tests and a 41-check local validator lifecycle run passed |
 | **MULTILINGUAL** | English, Bahasa Indonesia, Español, 中文; light and dark themes; phone-first layout |
 
 ---
@@ -309,7 +311,7 @@ to 9,296 bytes without removing a feature or a check:
 - Checked arithmetic where an input can overflow; invariant-based arithmetic
   only where the invariant is enforced on the way in.
 
-The 34 tests run against this exact build, so the size work is tested, not
+The 31 tests run against this exact build, so the size work is tested, not
 assumed.
 
 ### Accounts
@@ -343,7 +345,7 @@ order_hash = HMAC-SHA256(key, "commish:v1" || campaign || order_id)
 The key is known only to the brand: its shop secret, or a key the brand
 console derives from a wallet signature. Without it, nobody can compute the
 address of a future order and create it first to block the sale. See finding 1
-in the [security notes](docs/security-notes.md).
+in the [security notes](docs/INTERNAL_SECURITY_AUDIT.md).
 
 ### Error codes
 
@@ -382,7 +384,7 @@ the compiled `.so` into LiteSVM.
 
 A second, independent check: [`web/scripts/lifecycle.mts`](web/scripts/lifecycle.mts)
 drives the full lifecycle through the app's own client against a local
-validator with mainnet's feature set, and passed **42 of 42** checks, including the 1% fee
+validator with mainnet's feature set, and passed **41 of 41** checks
 ([`docs/proof/live-validator-run.md`](docs/proof/live-validator-run.md)).
 
 ---
@@ -394,13 +396,13 @@ validator with mainnet's feature set, and passed **42 of 42** checks, including 
 | Program account | [CmSHpw9Q…w8D79Z8jjhWmPJfFB](https://explorer.solana.com/address/CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB) |
 | Deploy transaction | [vZRdesXg…2xWPk9Cv6](https://explorer.solana.com/tx/vZRdesXgmPhV15JwAHy5akzcsn5AWssFYGne5mCcbEcDqJufqxwZWzwSUXHbUoNKBEzaMaryR1h2kB2xWPk9Cv6) |
 | Upgrade authority | [42azYTNi…4xQAtEPfUe](https://explorer.solana.com/address/42azYTNiC4bp6UtXXpEQ49adNWBbM6Hhx84xQAtEPfUe), a single key |
-| Deployed binary hash | `sha256 3e71be49df0861a5ff1343e6dbf0a28674d363c830b32d226fca16328cc264c4` (9,296 bytes) |
+| Deployed binary hash | `sha256 126d294003644c26ee27d90e5cbfc09c0c9c5ca996906ba3bf8c5a416f852ac8` (9,280 bytes; the program account is 9,296 bytes, the last 16 are zero padding). Matched against a local build of this source on 2026-10-05. |
 
 To verify the binary yourself:
 
 ```bash
 solana program dump CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB onchain.so -u m
-head -c 9296 onchain.so | sha256sum
+head -c 9280 onchain.so | sha256sum
 cd program && npm run build && sha256sum target/deploy/commish.so
 ```
 
@@ -445,7 +447,7 @@ Program (needs the Solana CLI with `cargo build-sbf`):
 cd program
 npm ci
 npm run build   # target/deploy/commish.so, 9,296 bytes
-npm test        # 34 tests against the compiled binary
+npm test        # 31 tests against the compiled binary
 ```
 
 App:
@@ -506,6 +508,28 @@ const { instruction } = await recordSaleIx({
 
 ---
 
+## Internal Security Assurance
+
+**INTERNAL SECURITY AUDIT COMPLETED.** The audit covered the deployed
+program and the security-sensitive client paths: PDA derivation, account
+checks, token constraints, payout paths, early-sale authorization and
+adversarial behaviour. The review and fixes were done by AI agents working
+from the maintainer's requests, prompted by a Superteam Earn bug-bounty report;
+the maintainer opened every pull request by hand. This is not a third-party audit.
+
+- 31 tests against the compiled program binary
+- 41 of 41 lifecycle and attack checks on a local validator
+- the pre-funding griefing scenario reproduced; the keyed HMAC-SHA-256
+  mitigation shown to hold
+- the deployed mainnet binary compared byte for byte with a build of this source
+- residual findings documented, including one Medium (mitigated in the client;
+  program-side fix reserved for a future upgrade)
+
+Full record: [docs/INTERNAL_SECURITY_AUDIT.md](docs/INTERNAL_SECURITY_AUDIT.md).
+Reporting policy: [SECURITY.md](SECURITY.md).
+
+---
+
 ## Security Model
 
 - **Trusted:** the brand's attestor reports real, paid orders. The program
@@ -515,11 +539,19 @@ const { instruction } = await recordSaleIx({
   window) and `withdraw` (the unreserved part, to the brand).
 - **Token checks:** only the legacy SPL Token program is accepted, and every
   token account is checked against the campaign's mint.
-- **Order hashes are keyed,** so nobody can pre-create a commission address to
-  block an order.
-- **No admin key.** There is no pause switch and no fee account the team
-  controls. The upgrade authority is a single key and will move to a
-  multisig before real volume.
+- **Order hashes are keyed (HMAC-SHA256),** preventing third parties from
+  predicting commission addresses and pre-funding them to grief sales.
+- **Single active commission per order hash:** The commission PDA address is derived
+  from `["commission", campaign, order_hash]`. Once paid out or cancelled, the account
+  is closed; only the attestor could record that order hash again.
+- **Privileged Controls & Governance:** No application-level admin accounts, no
+  pause switch. The only fee is the 1% taken at release, fixed in the program
+  source (`FEE_BPS = 100`). However, the program remains upgradeable
+  on mainnet under a single key (`42azYTNi…EPfUe`), scheduled to transition to a Squads
+  multisig before scaling commercial volume.
+- **Audit Posture:** Internal security audit and adversarial testing, done by AI agents at the
+  maintainer's request; no third-party audit. See full disclosure in [SECURITY.md](SECURITY.md) and
+  [docs/INTERNAL_SECURITY_AUDIT.md](docs/INTERNAL_SECURITY_AUDIT.md).
 
 ---
 
@@ -620,7 +652,7 @@ Music: "Happy Beats / Business Moves" Vol. 10 and Vol. 12 by Sascha Ende
 | **NON-KUSTODIAL** | Dana ada di vault milik program. Tidak ada server, termasuk tim Commish, yang bisa memindahkannya |
 | **TANPA KUNCI DI SERVER** | Website tidak menyimpan private key. Setiap transaksi ditandatangani di wallet pengguna |
 | **TETAP JALAN TANPA WEBSITE** | `release` tidak butuh penanda tangan, jadi komisi yang jatuh tempo bisa dibayar dari klien Solana mana pun |
-| **DIUJI DENGAN SERANGAN** | 34 tes menyerang binary hasil kompilasi; 41 pemeriksaan siklus penuh lolos di validator lokal dengan fitur mainnet |
+| **REVIEW INTERNAL & DIUJI DENGAN SERANGAN** | Pemeriksaan internal baris-per-baris selesai (belum ada audit independen pihak ketiga); 31 tes serangan binary dan 41 pemeriksaan siklus penuh lolos di validator lokal |
 | **MULTIBAHASA** | English, Bahasa Indonesia, Español, 中文; tema terang dan gelap; tata letak untuk ponsel |
 
 ---
@@ -796,7 +828,7 @@ Build pertama berukuran 25.664 byte (sekitar 0,13 SOL). Ukurannya turun ke
   sewa minimum.
 - Aritmetika checked untuk input yang bisa overflow.
 
-34 tes berjalan terhadap build yang persis sama, jadi pengecilan ukuran ini
+31 tes berjalan terhadap build yang persis sama, jadi pengecilan ukuran ini
 sudah diuji, bukan diasumsikan.
 
 | # | Instruksi | Penanda tangan | Fungsi | Compute unit |
@@ -838,7 +870,7 @@ Setiap aturan ditegakkan oleh program dan diserang oleh tes di
 
 Pemeriksaan kedua yang independen: [`web/scripts/lifecycle.mts`](web/scripts/lifecycle.mts)
 menjalankan siklus penuh lewat klien aplikasi di validator lokal dengan fitur
-mainnet, dan lolos **42 dari 42** pemeriksaan, termasuk biaya 1%
+mainnet, dan lolos **41 dari 41** pemeriksaan
 ([`docs/proof/live-validator-run.md`](docs/proof/live-validator-run.md)).
 
 ---
@@ -850,7 +882,7 @@ mainnet, dan lolos **42 dari 42** pemeriksaan, termasuk biaya 1%
 | Akun program | [CmSHpw9Q…w8D79Z8jjhWmPJfFB](https://explorer.solana.com/address/CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB) |
 | Transaksi deploy | [vZRdesXg…2xWPk9Cv6](https://explorer.solana.com/tx/vZRdesXgmPhV15JwAHy5akzcsn5AWssFYGne5mCcbEcDqJufqxwZWzwSUXHbUoNKBEzaMaryR1h2kB2xWPk9Cv6) |
 | Upgrade authority | [42azYTNi…4xQAtEPfUe](https://explorer.solana.com/address/42azYTNiC4bp6UtXXpEQ49adNWBbM6Hhx84xQAtEPfUe), satu kunci |
-| Hash binary | `sha256 3e71be49df0861a5ff1343e6dbf0a28674d363c830b32d226fca16328cc264c4` (9.296 byte) |
+| Hash binary | `sha256 126d294003644c26ee27d90e5cbfc09c0c9c5ca996906ba3bf8c5a416f852ac8` (9.280 byte; akun program 9.296 byte, 16 byte terakhir padding nol). Dicocokkan dengan build lokal dari source ini pada 2026-10-05. |
 
 Perintah untuk memverifikasi sendiri ada di bagian [On-Chain Proof](#on-chain-proof).
 
@@ -892,7 +924,7 @@ Perintah untuk memverifikasi sendiri ada di bagian [On-Chain Proof](#on-chain-pr
 # Program
 cd program && npm ci
 npm run build   # target/deploy/commish.so, 9.296 byte
-npm test        # 34 tes terhadap binary hasil kompilasi
+npm test        # 31 tes terhadap binary hasil kompilasi
 
 # Aplikasi
 cd web && npm ci
@@ -930,6 +962,27 @@ Contoh kode ada di bagian [Integration Guide](#integration-guide-for-brands).
 
 ---
 
+## Jaminan Keamanan Internal
+
+**AUDIT KEAMANAN INTERNAL SELESAI.** Audit mencakup program yang
+ter-deploy dan jalur klien yang sensitif: derivasi PDA, pemeriksaan akun,
+batasan token, jalur pembayaran, otorisasi jual awal, dan perilaku penyerang.
+Review dan perbaikannya dikerjakan agen AI atas permintaan maintainer, berawal
+dari laporan bug bounty Superteam Earn; setiap pull request dibuka manual oleh
+maintainer. Ini bukan audit pihak ketiga.
+
+- 31 tes terhadap binary program hasil kompilasi
+- 41 dari 41 pemeriksaan siklus dan serangan di validator lokal
+- skenario griefing pre-funding direproduksi; mitigasi HMAC-SHA-256 berkunci terbukti bertahan
+- binary di mainnet dibandingkan byte per byte dengan build dari source ini
+- temuan sisa didokumentasikan, termasuk satu Medium (dimitigasi di klien;
+  perbaikan di sisi program disiapkan untuk upgrade berikutnya)
+
+Catatan lengkap: [docs/INTERNAL_SECURITY_AUDIT.md](docs/INTERNAL_SECURITY_AUDIT.md).
+Kebijakan pelaporan: [SECURITY.md](SECURITY.md).
+
+---
+
 ## Model Keamanan
 
 - **Yang dipercaya:** attestor brand melaporkan pesanan yang benar-benar
@@ -939,11 +992,17 @@ Contoh kode ada di bagian [Integration Guide](#integration-guide-for-brands).
   setelah masa refund) dan `withdraw` (bagian yang tidak dicadangkan, ke brand).
 - **Pemeriksaan token:** hanya program SPL Token versi lama yang diterima, dan
   setiap token account diperiksa terhadap mint kampanye.
-- **Hash pesanan memakai kunci,** jadi tidak ada yang bisa membuat alamat
-  komisi lebih dulu untuk memblokir pesanan.
-- **Tanpa kunci admin.** Tidak ada tombol jeda dan tidak ada akun biaya yang
-  dikendalikan tim. Upgrade authority adalah satu kunci dan akan dipindah
-  ke multisig sebelum volume nyata.
+- **Hash pesanan memakai kunci (HMAC-SHA256),** sehingga pihak ketiga tidak bisa
+  menebak alamat PDA komisi dan mendahului pendanaan (pre-funding) untuk mengganggu transaksi.
+- **Satu komisi aktif per hash pesanan:** Alamat PDA diturunkan dari
+  `["commission", kampanye, order_hash]`. Setelah ditutup/dicairkan, hanya attestor yang
+  dapat mencatat pesanan tersebut lagi.
+- **Kontrol Akses & Tata Kelola:** Tidak ada akun admin aplikasi, tidak ada tombol
+  jeda. Satu-satunya biaya adalah 1% saat release, tertulis di source program (`FEE_BPS = 100`). Namun, program masih dapat di-upgrade
+  di mainnet lewat satu kunci (`42azYTNi…EPfUe`), dengan rencana migrasi ke Squads multisig sebelum volume besar.
+- **Status Audit:** Telah dilakukan self-review baris-per-baris dan uji serangan komprehensif;
+  belum ada audit independen pihak ketiga. Keterbukaan lengkap dicantumkan di [SECURITY.md](SECURITY.md) dan
+  [docs/INTERNAL_SECURITY_AUDIT.md](docs/INTERNAL_SECURITY_AUDIT.md).
 
 ---
 

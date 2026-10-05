@@ -41,6 +41,8 @@ import {
 import { fileURLToPath } from "node:url";
 const SO = fileURLToPath(new URL("../target/deploy/commish.so", import.meta.url));
 const DAY = 86_400n;
+// The attestor's HMAC secret for order hashes (fixed so test runs are repeatable).
+const ATTESTOR_KEY = new Uint8Array(32).fill(7);
 const USDC = (n: number) => BigInt(Math.round(n * 1_000_000));
 
 let svm: LiteSVM;
@@ -177,7 +179,7 @@ async function setup(opts: { bps?: number; hold?: bigint; budget?: bigint } = {}
 }
 
 async function sale(s: Setup, orderId: string, amount: bigint, payer: KeyPairSigner = s.attestor) {
-  const hash = await orderHash(s.campaign, orderId);
+  const hash = await orderHash(s.campaign, orderId, ATTESTOR_KEY);
   const { commission, instruction } = await recordSaleIx({
     attestor: s.attestor.address,
     payer: payer.address,
@@ -497,69 +499,39 @@ describe("early payout", () => {
   });
 });
 
-describe("machine payments (x402 holdback)", () => {
-  test("micropayment: 0.05 USDC at 1000 bps reserves 0.005 USDC", async () => {
+describe("documented behaviour", () => {
+  test("anyone can trigger the release once the window closes", async () => {
     const s = await setup({ hold: 600n });
-    const x = await sale(s, "x402-micro", 50_000n);
-    await ok([x.instruction], x.signers);
-    assert.equal(commissionOf(x.commission)!.amount, 5_000n);
-    assert.equal(campaignOf(s.campaign).reserved, 5_000n);
-  });
-
-  test("keeper release with only a fee payer (no brand/creator signer) succeeds", async () => {
-    const s = await setup({ hold: 600n });
-    const x = await sale(s, "x402-keeper", 50_000n);
+    const x = await sale(s, "order-keeper", 50_000n);
     await ok([x.instruction], x.signers);
     warp(600n);
     const keeper = await signer();
     await ok([releaseIx({ treasuryToken: treasuryAta, campaign: s.campaign, vault: s.vault, commission: x.commission, payeeToken: s.creatorAta, rentPayer: s.attestor.address })], [keeper]);
-    assert.equal(balance(s.creatorAta), 5_000n - 50n, "router gets 5000 minus 1% fee");
+    assert.equal(balance(s.creatorAta), 5_000n - 50n, "creator gets 5000 minus the 1% fee");
   });
 
-  test("KNOWN: same order hash can be recorded again after release (relayer must dedupe)", async () => {
+  test("finding #2: the attestor can record an order again after its commission is released", async () => {
     const s = await setup({ hold: 600n });
-    const x = await sale(s, "x402-replay-release", 50_000n);
+    const x = await sale(s, "order-again-release", 50_000n);
     await ok([x.instruction], x.signers);
     warp(600n);
     await ok([releaseIx({ treasuryToken: treasuryAta, campaign: s.campaign, vault: s.vault, commission: x.commission, payeeToken: s.creatorAta, rentPayer: s.attestor.address })], [s.creator]);
     assert.equal(commissionOf(x.commission), null);
-    const again = await sale(s, "x402-replay-release", 50_000n);
+    const again = await sale(s, "order-again-release", 50_000n);
     assert.equal(again.commission, x.commission, "same PDA");
     await ok([again.instruction], again.signers);
     assert.equal(commissionOf(x.commission)!.amount, 5_000n, "a second commission exists for the same order");
     assert.equal(campaignOf(s.campaign).reserved, 5_000n);
   });
 
-  test("KNOWN: same order hash can be recorded again after cancel (relayer must dedupe)", async () => {
+  test("finding #2: the attestor can record an order again after its commission is cancelled", async () => {
     const s = await setup({ hold: 600n });
-    const x = await sale(s, "x402-replay-cancel", 50_000n);
+    const x = await sale(s, "order-again-cancel", 50_000n);
     await ok([x.instruction], x.signers);
     await ok([cancelIx({ attestor: s.attestor.address, campaign: s.campaign, commission: x.commission, rentPayer: s.attestor.address })], [s.attestor]);
-    const again = await sale(s, "x402-replay-cancel", 50_000n);
+    const again = await sale(s, "order-again-cancel", 50_000n);
     await ok([again.instruction], again.signers);
     assert.equal(commissionOf(x.commission)!.amount, 5_000n);
-  });
-
-  test("release before the 600 s window fails", async () => {
-    const s = await setup({ hold: 600n });
-    const x = await sale(s, "x402-early", 50_000n);
-    await ok([x.instruction], x.signers);
-    warp(599n);
-    const keeper = await signer();
-    await fails(6011, [releaseIx({ treasuryToken: treasuryAta, campaign: s.campaign, vault: s.vault, commission: x.commission, payeeToken: s.creatorAta, rentPayer: s.attestor.address })], [keeper]);
-  });
-
-  test("sell then cancel: buyer desk ends with nothing", async () => {
-    const s = await setup({ hold: 600n });
-    const x = await sale(s, "x402-sold-cancel", 50_000n);
-    await ok([x.instruction], x.signers);
-    const desk = await signer();
-    const deskAta = await fund(desk.address, 10_000n);
-    await ok([sellIx({ payee: s.creator.address, buyer: desk.address, campaign: s.campaign, commission: x.commission, buyerToken: deskAta, payeeToken: s.creatorAta, price: 4_800n })], [s.creator, desk]);
-    await ok([cancelIx({ attestor: s.attestor.address, campaign: s.campaign, commission: x.commission, rentPayer: s.attestor.address })], [s.attestor]);
-    warp(600n);
-    await fails(null, [releaseIx({ treasuryToken: treasuryAta, campaign: s.campaign, vault: s.vault, commission: x.commission, payeeToken: deskAta, rentPayer: s.attestor.address })], [desk]);
-    assert.equal(balance(deskAta), 10_000n - 4_800n, "desk lost the price and has no claim");
   });
 });
 

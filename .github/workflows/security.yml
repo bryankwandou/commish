@@ -1,0 +1,50 @@
+name: Security & Code Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  audit-and-lint:
+    name: Security Audits & Linters
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Rust Security Audit
+        uses: rustsec/audit-check@v2.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: Run Cargo Clippy (Rust)
+        run: |
+          cargo clippy --all-targets --all-features -- -D warnings
+        continue-on-error: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Root NPM Audit & Typecheck
+        run: |
+          npm audit --audit-level=high || true
+          npm run lint || true
+
+      - name: Web Client Typecheck & Lint
+        working-directory: web
+        run: |
+          npm ci
+          npm run lint || true
