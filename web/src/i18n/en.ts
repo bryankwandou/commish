@@ -170,8 +170,8 @@ const en = {
         a: "Yes. The program and the client are open source, and anyone can call release.",
       },
       {
-        q: "Has the program been audited?",
-        a: "Not yet. It is small (under 10 KB) and open source, and every rule on this page has a test that tries to break it. Keep amounts modest until an audit is done.",
+        q: "What is the security status?",
+        a: "Status: not audited. The program is small (under 10 KB) and open source, and every rule on this page has a test that tries to break it. Keep amounts modest.",
       },
     ],
   },

@@ -127,7 +127,7 @@ export default async function Docs({ params }: PageProps<"/[lang]/docs">) {
             <li>Only the legacy SPL Token program is accepted, and every token account is checked for the campaign&apos;s mint.</li>
             <li>A commission address that already holds lamports makes <C>record_sale</C> fail for that order. Derive order hashes with a key only the attestor holds (<C>orderHash(campaign, orderId, key)</C>, HMAC-SHA256) so nobody can predict the next address and block it; the brand console does this with a key derived from the attestor wallet.</li>
             <li>An order can be recorded again after its commission is paid or cancelled, because the account is closed. Only the attestor can record, so this is the attestor&apos;s responsibility.</li>
-            <li>The program is not audited. It is covered by 26 end-to-end tests that run against the compiled binary, most of them attacks that must fail.</li>
+            <li>Status: not audited. The program is covered by 34 end-to-end tests that run against the compiled binary, most of them attacks that must fail.</li>
           </ul>
         </article>
       </main>
