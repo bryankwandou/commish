@@ -70,8 +70,9 @@ await send("create_campaign (10%, 20 s window)", cc.instructions, []);
 await send("fund vault with 100", [C.tokenTransferIx(brandAta, vault, a(brand), U(100))], []);
 
 // ---- record sales
+const attestorSecret = crypto.getRandomValues(new Uint8Array(32));
 const sale = async (id: string, total: number, signer: Keypair, expect?: number) => {
-  const h = await C.orderHash(campaign, id);
+  const h = await C.orderHash(campaign, id, attestorSecret);
   const r = await C.recordSaleIx({ attestor: a(signer), payer: a(signer), campaign, vault, orderHash: h, orderAmount: U(total), creator: a(creator), lamports: comRent });
   await send(`record_sale ${id} (${total})${expect !== undefined ? " by " + (signer === attestor ? "attestor" : "stranger") : ""}`, [r.instruction], [signer], expect);
   return r.commission;

@@ -1,0 +1,53 @@
+name: program tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  litesvm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      # program/target/deploy/commish.so is gitignored, so CI builds it.
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/share/solana
+            ~/.cache/solana
+            ~/.cargo/registry
+            ~/.cargo/git
+            program/target
+          key: sbf-${{ runner.os }}-${{ hashFiles('program/Cargo.lock') }}
+          restore-keys: sbf-${{ runner.os }}-
+
+      - name: Install Solana CLI (Anza)
+        run: |
+          if [ ! -x "$HOME/.local/share/solana/install/active_release/bin/cargo-build-sbf" ]; then
+            sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
+          fi
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: program/package-lock.json
+
+      - name: Build program (cargo build-sbf)
+        working-directory: program
+        run: |
+          cargo-build-sbf --version
+          npm run build
+          ls -l target/deploy/commish.so
+
+      - name: LiteSVM tests
+        working-directory: program
+        run: |
+          npm ci
+          npm test

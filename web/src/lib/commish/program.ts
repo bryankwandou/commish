@@ -168,26 +168,33 @@ export async function findAta(owner: Address, mint: Address) {
 }
 
 /**
- * Order hash committed on-chain, which also fixes the commission's address.
+ * Order hash committed on-chain, which fixes the commission PDA address.
  *
- * With a `key` (recommended): HMAC-SHA256(key, "commish:v1" | campaign | order id).
- * The address then cannot be predicted by anyone without the key. Without one,
- * an outsider who can guess the next order id (shops often number orders in
- * sequence) can send a few lamports to that address first, and record_sale for
- * that order fails, because a new account cannot be created where lamports
- * already sit. The key is the attestor's secret: an HMAC secret on a shop
- * server, or `attestorKey()` for a wallet. The same key and order id always give
- * the same hash, so an order still cannot be recorded twice while its
- * commission is open.
+ * Secure-by-default: Requires HMAC-SHA256(key, "commish:v1" | campaign | order id).
+ * The commission address cannot be predicted by external observers without the key.
+ * This prevents pre-funding attacks (where an outsider sends lamports to a predicted
+ * PDA to cause CreateAccount to fail upon record_sale).
  *
- * Without a key: sha256("commish:v1" | campaign | order id). Only safe for order
- * ids that are already unguessable, such as random UUIDs.
+ * The key is the attestor's secret: an HMAC secret on a merchant backend, or
+ * `attestorKey()` derived deterministically via wallet signature.
  */
-export async function orderHash(campaign: Address, orderId: string, key?: Uint8Array): Promise<Uint8Array> {
+export async function orderHash(campaign: Address, orderId: string, key: Uint8Array): Promise<Uint8Array> {
   const pre = new Uint8Array([...new TextEncoder().encode("commish:v1"), ...enc.encode(campaign), ...new TextEncoder().encode(orderId)]);
-  if (!key) return new Uint8Array(await crypto.subtle.digest("SHA-256", pre));
   const k = await crypto.subtle.importKey("raw", key as BufferSource, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   return new Uint8Array(await crypto.subtle.sign("HMAC", k, pre as BufferSource));
+}
+
+/**
+ * Unkeyed SHA-256 order hash: sha256("commish:v1" | campaign | order id).
+ *
+ * CAUTION / FOOTGUN WARNING:
+ * Only safe if order IDs are completely unguessable (e.g. high-entropy UUIDv4).
+ * If sequential or predictable order IDs are used, attackers can pre-fund the PDA
+ * with lamports and grief the honest record_sale transaction.
+ */
+export async function orderHashUnsafeForUnpredictableIds(campaign: Address, orderId: string): Promise<Uint8Array> {
+  const pre = new Uint8Array([...new TextEncoder().encode("commish:v1"), ...enc.encode(campaign), ...new TextEncoder().encode(orderId)]);
+  return new Uint8Array(await crypto.subtle.digest("SHA-256", pre));
 }
 
 /**
