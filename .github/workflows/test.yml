@@ -38,7 +38,9 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: program/package-lock.json
+          cache-dependency-path: |
+            program/package-lock.json
+            web/package-lock.json
 
       - name: Build program (cargo build-sbf)
         working-directory: program
@@ -52,6 +54,11 @@ jobs:
         working-directory: program
         run: |
           echo "6a88a6d02bb2e41151340c7283890d2130a2e8d85c7dcce810f7d8b4c0ffb4f5  target/deploy/commish.so" | sha256sum -c -
+
+      # The tests import web/src/lib/commish/program.ts, which needs web's @solana/kit.
+      - name: Install web dependencies
+        working-directory: web
+        run: npm ci
 
       - name: LiteSVM tests
         working-directory: program
