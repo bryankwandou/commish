@@ -343,7 +343,7 @@ order_hash = HMAC-SHA256(key, "commish:v1" || campaign || order_id)
 The key is known only to the brand: its shop secret, or a key the brand
 console derives from a wallet signature. Without it, nobody can compute the
 address of a future order and create it first to block the sale. See finding 1
-in the [security review](docs/security-review.md).
+in the [security notes](docs/security-notes.md).
 
 ### Error codes
 
@@ -520,9 +520,6 @@ const { instruction } = await recordSaleIx({
 - **No admin key.** There is no pause switch and no fee account the team
   controls. The upgrade authority is a single key and will move to a
   multisig before real volume.
-- **Review status.** An internal review ([`docs/security-review.md`](docs/security-review.md))
-  lists one medium finding (fixed) and three low or informational ones.
-  Status: not audited. Keep amounts modest.
 
 ---
 
@@ -534,7 +531,7 @@ const { instruction } = await recordSaleIx({
 | [`web/`](web) | the Next.js app: landing, brand console, creator desk, docs, API routes |
 | [`web/src/lib/commish/program.ts`](web/src/lib/commish/program.ts) | the client: decoders, PDA derivation, every instruction builder |
 | [`web/scripts/`](web/scripts) | lifecycle and griefing checks against a local validator |
-| [`docs/`](docs) | screenshots, security review, on-chain proof, video scripts |
+| [`docs/`](docs) | screenshots, security notes, on-chain proof, video scripts |
 | [`pitch/`](pitch) | the pitch deck: PDF, PowerPoint (pixel-exact and editable), HTML source with speaker notes |
 | [`research/commish-sources.md`](research/commish-sources.md) | every outside number, with its page and a verbatim quote |
 | [`brag-output/`](brag-output) | the 23-second launch video, its poster and share copy |
@@ -550,7 +547,7 @@ of the deployed product.
 
 | When | Milestone |
 | --- | --- |
-| Sep 2026 | Program on mainnet, app live in four languages, internal security review |
+| Sep 2026 | Program on mainnet, app live in four languages |
 | Oct 2026 | First live campaign with a real shop; Colosseum submission |
 | Q4 2026 | Shopify and WooCommerce attestor plugins; upgrade authority to a multisig |
 | Q1 2027 | Ten pilots with Solana apps that pay creators |
@@ -624,7 +621,6 @@ Music: "Happy Beats / Business Moves" Vol. 10 and Vol. 12 by Sascha Ende
 | **TANPA KUNCI DI SERVER** | Website tidak menyimpan private key. Setiap transaksi ditandatangani di wallet pengguna |
 | **TETAP JALAN TANPA WEBSITE** | `release` tidak butuh penanda tangan, jadi komisi yang jatuh tempo bisa dibayar dari klien Solana mana pun |
 | **DIUJI DENGAN SERANGAN** | 34 tes menyerang binary hasil kompilasi; 41 pemeriksaan siklus penuh lolos di validator lokal dengan fitur mainnet |
-| **DITINJAU** | Tinjauan keamanan internal di [`docs/security-review.md`](docs/security-review.md); satu temuan medium sudah diperbaiki |
 | **MULTIBAHASA** | English, Bahasa Indonesia, Español, 中文; tema terang dan gelap; tata letak untuk ponsel |
 
 ---
@@ -948,9 +944,6 @@ Contoh kode ada di bagian [Integration Guide](#integration-guide-for-brands).
 - **Tanpa kunci admin.** Tidak ada tombol jeda dan tidak ada akun biaya yang
   dikendalikan tim. Upgrade authority adalah satu kunci dan akan dipindah
   ke multisig sebelum volume nyata.
-- **Status tinjauan.** Tinjauan internal ([`docs/security-review.md`](docs/security-review.md))
-  mencatat satu temuan medium (sudah diperbaiki) dan tiga temuan rendah atau
-  informasional. Status: not audited. Gunakan jumlah yang wajar.
 
 ---
 
@@ -961,7 +954,7 @@ Contoh kode ada di bagian [Integration Guide](#integration-guide-for-brands).
 | [`program/`](program) | program on-chain dan tes LiteSVM |
 | [`web/`](web) | aplikasi Next.js: landing, konsol brand, meja kreator, dokumentasi, API |
 | [`web/scripts/`](web/scripts) | pemeriksaan siklus penuh dan griefing di validator lokal |
-| [`docs/`](docs) | screenshot, tinjauan keamanan, bukti on-chain, naskah video |
+| [`docs/`](docs) | screenshot, catatan keamanan, bukti on-chain, naskah video |
 | [`pitch/`](pitch) | pitch deck: PDF, PowerPoint, sumber HTML dengan catatan pembicara |
 | [`research/commish-sources.md`](research/commish-sources.md) | setiap angka dari luar, dengan halaman sumber dan kutipan asli |
 | [`brag-output/`](brag-output) | video peluncuran 23 detik |
@@ -976,7 +969,7 @@ berisi iterasi pertama proyek ini dan sudah digantikan oleh `program/` dan
 
 | Kapan | Target |
 | --- | --- |
-| Sep 2026 | Program di mainnet, aplikasi live dalam empat bahasa, tinjauan keamanan internal |
+| Sep 2026 | Program di mainnet, aplikasi live dalam empat bahasa |
 | Okt 2026 | Kampanye live pertama dengan toko nyata; submisi Colosseum |
 | Q4 2026 | Plugin attestor untuk Shopify dan WooCommerce; upgrade authority ke multisig |
 | Q1 2027 | Sepuluh pilot dengan aplikasi Solana yang membayar kreator |
