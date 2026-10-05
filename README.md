@@ -521,8 +521,8 @@ const { instruction } = await recordSaleIx({
   controls. The upgrade authority is a single key and will move to a
   multisig before real volume.
 - **Review status.** An internal review ([`docs/security-review.md`](docs/security-review.md))
-  lists one medium finding (fixed) and three low or informational ones. It is
-  not a third-party audit. Keep amounts modest until one is done.
+  lists one medium finding (fixed) and three low or informational ones.
+  Status: not audited. Keep amounts modest.
 
 ---
 
@@ -553,7 +553,7 @@ of the deployed product.
 | Sep 2026 | Program on mainnet, app live in four languages, internal security review |
 | Oct 2026 | First live campaign with a real shop; Colosseum submission |
 | Q4 2026 | Shopify and WooCommerce attestor plugins; upgrade authority to a multisig |
-| Q1 2027 | Ten pilots with Solana apps that pay creators; third-party audit |
+| Q1 2027 | Ten pilots with Solana apps that pay creators |
 | 2027 | Secondary market for pending commissions |
 
 ---
@@ -950,8 +950,7 @@ Contoh kode ada di bagian [Integration Guide](#integration-guide-for-brands).
   ke multisig sebelum volume nyata.
 - **Status tinjauan.** Tinjauan internal ([`docs/security-review.md`](docs/security-review.md))
   mencatat satu temuan medium (sudah diperbaiki) dan tiga temuan rendah atau
-  informasional. Ini bukan audit pihak ketiga. Gunakan jumlah yang wajar
-  sampai audit selesai.
+  informasional. Status: not audited. Gunakan jumlah yang wajar.
 
 ---
 
@@ -980,7 +979,7 @@ berisi iterasi pertama proyek ini dan sudah digantikan oleh `program/` dan
 | Sep 2026 | Program di mainnet, aplikasi live dalam empat bahasa, tinjauan keamanan internal |
 | Okt 2026 | Kampanye live pertama dengan toko nyata; submisi Colosseum |
 | Q4 2026 | Plugin attestor untuk Shopify dan WooCommerce; upgrade authority ke multisig |
-| Q1 2027 | Sepuluh pilot dengan aplikasi Solana yang membayar kreator; audit pihak ketiga |
+| Q1 2027 | Sepuluh pilot dengan aplikasi Solana yang membayar kreator |
 | 2027 | Pasar sekunder untuk komisi tertunda |
 
 ---

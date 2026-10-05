@@ -1,9 +1,9 @@
 # Internal security review
 
 **What this is.** A line-by-line review of `program/src/lib.rs` (516 lines) by the
-builder, with findings reproduced on a live validator. It is not an independent
-audit; an audit by a security firm is still planned before large amounts go
-through the program.
+builder, with findings reproduced on a live validator.
+
+**Status: not audited.**
 
 **Scope.** Every instruction (`create_campaign`, `record_sale`, `cancel`, `release`,
 `withdraw`, `sell`), the entrypoint, the CPI helper and account closing. Reviewed

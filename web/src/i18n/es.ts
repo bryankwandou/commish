@@ -171,8 +171,8 @@ const es: Dictionary = {
         a: "Sí. El programa y el cliente son de código abierto, y cualquiera puede llamar a la liberación.",
       },
       {
-        q: "¿Está auditado el programa?",
-        a: "Todavía no. Es pequeño (menos de 10 KB) y abierto, y cada regla de esta página tiene una prueba que intenta romperla. Usa montos moderados hasta que haya una auditoría.",
+        q: "¿Cuál es el estado de seguridad?",
+        a: "Estado: not audited. Es pequeño (menos de 10 KB) y abierto, y cada regla de esta página tiene una prueba que intenta romperla. Usa montos moderados.",
       },
     ],
   },
