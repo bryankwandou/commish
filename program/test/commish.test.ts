@@ -276,7 +276,7 @@ describe("recording sales", () => {
       assert.equal(m.amount, USDC(10));
       assert.equal(m.payee, s.creator.address);
       const rent = rentCommission();
-      assert.equal(svm.getBalance(x.commission), sent > rent ? sent : rent);
+      assert.equal(svm.getBalance(x.commission), sent + rent);
       const again = await sale(s, id, USDC(100));
       await fails(null, [again.instruction], again.signers);
     }
@@ -555,9 +555,8 @@ describe("binary", () => {
     const size = statSync(SO).size;
     console.log(`\n  program binary: ${size} bytes`);
     for (const [k, v] of Object.entries(cu)) console.log(`  ${k.padEnd(30)} ${v} CU`);
-    // The first deploy sized the program account at 9,296 bytes. The pre-funding
-    // fix needs more, so the upgrade extends the account to 10,000 bytes first
-    // (`solana program extend <id> 704`); stay under that.
-    assert.ok(size <= 10_000, `binary is ${size} bytes; the extended program account holds 10,000`);
+    // The first deploy sized the program account at 9,296 bytes; staying under
+    // it lets an upgrade reuse that account without paying to extend it.
+    assert.ok(size <= 9_296, `binary is ${size} bytes; the deployed program account holds 9,296`);
   });
 });
