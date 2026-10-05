@@ -29,6 +29,6 @@ builder, with findings reproduced on a live validator.
 
 ## Evidence
 
-- 26 unit tests against the compiled binary (`program/test`).
+- 34 unit tests against the compiled binary (`program/test`).
 - 41 of 41 checks for every instruction and attack on a live validator (`docs/proof/live-validator-run.md`).
 - The pre-funding finding and its fix: `web/scripts/grief.mts`.
