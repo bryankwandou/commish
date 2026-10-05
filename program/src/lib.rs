@@ -365,17 +365,44 @@ fn pay_out(camp: &AccountView, c: &Campaign, vault: &AccountView, to: &AccountVi
 /// sign when the seeds and bump derive to its address, so a wrong bump fails
 /// the CPI; and CreateAccount refuses an address that is already in use, so
 /// the same seeds can never be created twice.
+///
+/// Anyone can send lamports to an address before it exists, and CreateAccount
+/// then fails. So when the address already holds lamports, the account is
+/// topped up to `lamports`, allocated and assigned instead. The System program
+/// only allocates or assigns an account it owns that has no data, so an
+/// existing record still cannot be created twice.
 #[inline(never)]
 fn create(payer: &AccountView, acct: &AccountView, seed: &[u8], a: &Key, b: &[u8], bump: u8, lamports: u64, len: usize) -> R<*mut u8> {
     signer(payer)?;
-    let mut d = [0u8; 52];
-    d[4..12].copy_from_slice(&lamports.to_le_bytes());
-    d[12..20].copy_from_slice(&(len as u64).to_le_bytes());
-    d[20..].copy_from_slice(ID.as_ref());
     let bb = [bump];
     let seeds = [Seed::from(seed), Seed::from(a), Seed::from(b), Seed::from(&bb)];
-    // payer: w+s, new account: w+s
-    cpi(&SYSTEM, &[payer, acct], 0b11_11, &d, &[Signer::from(&seeds)]);
+    let pda = [Signer::from(&seeds)];
+    let have = acct.lamports();
+    if have == 0 {
+        let mut d = [0u8; 52];
+        d[4..12].copy_from_slice(&lamports.to_le_bytes());
+        d[12..20].copy_from_slice(&(len as u64).to_le_bytes());
+        d[20..].copy_from_slice(ID.as_ref());
+        // payer: w+s, new account: w+s
+        cpi(&SYSTEM, &[payer, acct], 0b11_11, &d, &pda);
+    } else {
+        if lamports > have {
+            // Transfer: payer w+s, account w
+            let mut d = [0u8; 12];
+            d[0] = 2;
+            d[4..12].copy_from_slice(&(lamports - have).to_le_bytes());
+            cpi(&SYSTEM, &[payer, acct], 0b01_11, &d, &[]);
+        }
+        // Allocate, then Assign: account w+s
+        let mut d = [0u8; 12];
+        d[0] = 8;
+        d[4..12].copy_from_slice(&(len as u64).to_le_bytes());
+        cpi(&SYSTEM, &[acct], 0b11, &d, &pda);
+        let mut d = [0u8; 36];
+        d[0] = 1;
+        d[4..].copy_from_slice(ID.as_ref());
+        cpi(&SYSTEM, &[acct], 0b11, &d, &pda);
+    }
     ok(rec(acct, &ID, len, 0))
 }
 
