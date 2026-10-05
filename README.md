@@ -10,7 +10,7 @@
 [![Live App](https://img.shields.io/badge/Live%20App-getcommish.vercel.app-111111?logo=vercel&logoColor=white)](https://getcommish.vercel.app)
 [![Pinocchio](https://img.shields.io/badge/Pinocchio-0.11-FF6B00)](https://github.com/anza-xyz/pinocchio)
 [![Program size](https://img.shields.io/badge/Program-9%2C296%20bytes-2F80ED)](#the-program)
-[![Tests](https://img.shields.io/badge/Tests-28%20passing-2EA043)](#guarantees-and-the-tests-that-attack-them)
+[![Tests](https://img.shields.io/badge/Tests-34%20passing-2EA043)](#guarantees-and-the-tests-that-attack-them)
 [![USDC](https://img.shields.io/badge/Token-USDC-2775CA)](https://explorer.solana.com/address/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Colosseum](https://img.shields.io/badge/Colosseum-Crypto%20World's%20Fair%202026-FF6B00)](https://www.colosseum.org)
@@ -23,7 +23,7 @@
 | **Docs** | [getcommish.vercel.app/en/docs](https://getcommish.vercel.app/en/docs) |
 | **Program (mainnet)** | [`CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB`](https://explorer.solana.com/address/CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB) |
 | **Deploy transaction** | [`vZRdesXg…2xWPk9Cv6`](https://explorer.solana.com/tx/vZRdesXgmPhV15JwAHy5akzcsn5AWssFYGne5mCcbEcDqJufqxwZWzwSUXHbUoNKBEzaMaryR1h2kB2xWPk9Cv6) |
-| **Upgrade authority** | [`ETcQvsQek2w9feLfsqoe4AypCWfnrSwQiv3djqocaP2m`](https://explorer.solana.com/address/ETcQvsQek2w9feLfsqoe4AypCWfnrSwQiv3djqocaP2m) (founder wallet) |
+| **Upgrade authority** | [`42azYTNiC4bp6UtXXpEQ49adNWBbM6Hhx84xQAtEPfUe`](https://explorer.solana.com/address/42azYTNiC4bp6UtXXpEQ49adNWBbM6Hhx84xQAtEPfUe) (single key; moves to a multisig before real volume) |
 | **Settlement token** | USDC [`EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`](https://explorer.solana.com/address/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v) |
 | **Pitch deck** | [PDF](pitch/commish-pitch.pdf) · [PowerPoint](pitch/commish-pitch.pptx) · [editable PowerPoint](pitch/commish-pitch-editable.pptx) |
 | **Videos** | [Launch video, 23 s](brag-output/brag.mp4) · [Product walkthrough](docs/video/commish-walkthrough.mp4) |
@@ -39,8 +39,7 @@
 | **NON-CUSTODIAL** | Funds sit in program-owned vaults. No server, and not the Commish team, can move them |
 | **NO BACKEND KEYS** | The website holds no private key. Every transaction is signed in the user's wallet |
 | **WORKS WITHOUT THE WEBSITE** | `release` needs no signer, so a due commission can be paid from any Solana client |
-| **ATTACK-TESTED** | 28 tests attack the compiled binary; a 41-check lifecycle run passed on a local validator configured like mainnet |
-| **REVIEWED** | Internal security review in [`docs/security-review.md`](docs/security-review.md); the one medium finding is fixed |
+| **ATTACK-TESTED** | 34 tests attack the compiled binary; a 41-check lifecycle run passed on a local validator configured like mainnet |
 | **MULTILINGUAL** | English, Bahasa Indonesia, Español, 中文; light and dark themes; phone-first layout |
 
 ---
@@ -310,7 +309,7 @@ to 9,296 bytes without removing a feature or a check:
 - Checked arithmetic where an input can overflow; invariant-based arithmetic
   only where the invariant is enforced on the way in.
 
-The 28 tests run against this exact build, so the size work is tested, not
+The 34 tests run against this exact build, so the size work is tested, not
 assumed.
 
 ### Accounts
@@ -394,7 +393,7 @@ validator with mainnet's feature set, and passed **42 of 42** checks, including 
 | --- | --- |
 | Program account | [CmSHpw9Q…w8D79Z8jjhWmPJfFB](https://explorer.solana.com/address/CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB) |
 | Deploy transaction | [vZRdesXg…2xWPk9Cv6](https://explorer.solana.com/tx/vZRdesXgmPhV15JwAHy5akzcsn5AWssFYGne5mCcbEcDqJufqxwZWzwSUXHbUoNKBEzaMaryR1h2kB2xWPk9Cv6) |
-| Upgrade authority | [ETcQvsQe…djqocaP2m](https://explorer.solana.com/address/ETcQvsQek2w9feLfsqoe4AypCWfnrSwQiv3djqocaP2m), the founder's wallet |
+| Upgrade authority | [42azYTNi…4xQAtEPfUe](https://explorer.solana.com/address/42azYTNiC4bp6UtXXpEQ49adNWBbM6Hhx84xQAtEPfUe), a single key |
 | Deployed binary hash | `sha256 3e71be49df0861a5ff1343e6dbf0a28674d363c830b32d226fca16328cc264c4` (9,296 bytes) |
 
 To verify the binary yourself:
@@ -411,8 +410,8 @@ cd program && npm run build && sha256sum target/deploy/commish.so
 
 - **Fee:** 1% of each payout, taken at release and sent to the treasury's USDC
   account. It is enforced in the program source (`FEE_BPS = 100`) and covered by
-  two tests and the lifecycle run; it goes live on mainnet with the next program
-  upgrade.
+  two tests and the lifecycle run. It is live on mainnet: the 3 Oct 2026 mainnet
+  test run paid the 1% to the treasury at each release.
 - **Size of the prize:** if 1% of US affiliate spend settled through Commish,
   that is about $138M a year in volume and about **$1.4M a year** in fees.
 - **Early payout:** a market for pending commissions. Buyers earn the discount;
@@ -446,7 +445,7 @@ Program (needs the Solana CLI with `cargo build-sbf`):
 cd program
 npm ci
 npm run build   # target/deploy/commish.so, 9,296 bytes
-npm test        # 28 tests against the compiled binary
+npm test        # 34 tests against the compiled binary
 ```
 
 App:
@@ -519,7 +518,7 @@ const { instruction } = await recordSaleIx({
 - **Order hashes are keyed,** so nobody can pre-create a commission address to
   block an order.
 - **No admin key.** There is no pause switch and no fee account the team
-  controls. The upgrade authority is the founder's wallet and will move to a
+  controls. The upgrade authority is a single key and will move to a
   multisig before real volume.
 - **Review status.** An internal review ([`docs/security-review.md`](docs/security-review.md))
   lists one medium finding (fixed) and three low or informational ones. It is
@@ -555,7 +554,7 @@ of the deployed product.
 | Oct 2026 | First live campaign with a real shop; Colosseum submission |
 | Q4 2026 | Shopify and WooCommerce attestor plugins; upgrade authority to a multisig |
 | Q1 2027 | Ten pilots with Solana apps that pay creators; third-party audit |
-| 2027 | Secondary market for pending commissions; 1% payout fee switched on |
+| 2027 | Secondary market for pending commissions |
 
 ---
 
@@ -624,7 +623,7 @@ Music: "Happy Beats / Business Moves" Vol. 10 and Vol. 12 by Sascha Ende
 | **NON-KUSTODIAL** | Dana ada di vault milik program. Tidak ada server, termasuk tim Commish, yang bisa memindahkannya |
 | **TANPA KUNCI DI SERVER** | Website tidak menyimpan private key. Setiap transaksi ditandatangani di wallet pengguna |
 | **TETAP JALAN TANPA WEBSITE** | `release` tidak butuh penanda tangan, jadi komisi yang jatuh tempo bisa dibayar dari klien Solana mana pun |
-| **DIUJI DENGAN SERANGAN** | 28 tes menyerang binary hasil kompilasi; 41 pemeriksaan siklus penuh lolos di validator lokal dengan fitur mainnet |
+| **DIUJI DENGAN SERANGAN** | 34 tes menyerang binary hasil kompilasi; 41 pemeriksaan siklus penuh lolos di validator lokal dengan fitur mainnet |
 | **DITINJAU** | Tinjauan keamanan internal di [`docs/security-review.md`](docs/security-review.md); satu temuan medium sudah diperbaiki |
 | **MULTIBAHASA** | English, Bahasa Indonesia, Español, 中文; tema terang dan gelap; tata letak untuk ponsel |
 
@@ -801,7 +800,7 @@ Build pertama berukuran 25.664 byte (sekitar 0,13 SOL). Ukurannya turun ke
   sewa minimum.
 - Aritmetika checked untuk input yang bisa overflow.
 
-28 tes berjalan terhadap build yang persis sama, jadi pengecilan ukuran ini
+34 tes berjalan terhadap build yang persis sama, jadi pengecilan ukuran ini
 sudah diuji, bukan diasumsikan.
 
 | # | Instruksi | Penanda tangan | Fungsi | Compute unit |
@@ -854,7 +853,7 @@ mainnet, dan lolos **42 dari 42** pemeriksaan, termasuk biaya 1%
 | --- | --- |
 | Akun program | [CmSHpw9Q…w8D79Z8jjhWmPJfFB](https://explorer.solana.com/address/CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB) |
 | Transaksi deploy | [vZRdesXg…2xWPk9Cv6](https://explorer.solana.com/tx/vZRdesXgmPhV15JwAHy5akzcsn5AWssFYGne5mCcbEcDqJufqxwZWzwSUXHbUoNKBEzaMaryR1h2kB2xWPk9Cv6) |
-| Upgrade authority | [ETcQvsQe…djqocaP2m](https://explorer.solana.com/address/ETcQvsQek2w9feLfsqoe4AypCWfnrSwQiv3djqocaP2m), wallet founder |
+| Upgrade authority | [42azYTNi…4xQAtEPfUe](https://explorer.solana.com/address/42azYTNiC4bp6UtXXpEQ49adNWBbM6Hhx84xQAtEPfUe), satu kunci |
 | Hash binary | `sha256 3e71be49df0861a5ff1343e6dbf0a28674d363c830b32d226fca16328cc264c4` (9.296 byte) |
 
 Perintah untuk memverifikasi sendiri ada di bagian [On-Chain Proof](#on-chain-proof).
@@ -865,7 +864,8 @@ Perintah untuk memverifikasi sendiri ada di bagian [On-Chain Proof](#on-chain-pr
 
 - **Biaya:** 1% dari setiap pencairan, diambil saat `release` dan dikirim ke akun
   USDC treasury. Sudah ada di kode program (`FEE_BPS = 100`), diuji oleh dua tes
-  dan pemeriksaan siklus penuh, dan aktif di mainnet pada upgrade program berikutnya.
+  dan pemeriksaan siklus penuh. Sudah aktif di mainnet: uji mainnet 3 Okt 2026
+  membayar 1% ke treasury di setiap release.
 - **Potensi:** jika 1% belanja afiliasi AS diselesaikan lewat Commish, itu
   sekitar US$138 juta volume per tahun dan sekitar **US$1,4 juta per tahun**
   dari biaya.
@@ -896,7 +896,7 @@ Perintah untuk memverifikasi sendiri ada di bagian [On-Chain Proof](#on-chain-pr
 # Program
 cd program && npm ci
 npm run build   # target/deploy/commish.so, 9.296 byte
-npm test        # 28 tes terhadap binary hasil kompilasi
+npm test        # 34 tes terhadap binary hasil kompilasi
 
 # Aplikasi
 cd web && npm ci
@@ -946,7 +946,7 @@ Contoh kode ada di bagian [Integration Guide](#integration-guide-for-brands).
 - **Hash pesanan memakai kunci,** jadi tidak ada yang bisa membuat alamat
   komisi lebih dulu untuk memblokir pesanan.
 - **Tanpa kunci admin.** Tidak ada tombol jeda dan tidak ada akun biaya yang
-  dikendalikan tim. Upgrade authority adalah wallet founder dan akan dipindah
+  dikendalikan tim. Upgrade authority adalah satu kunci dan akan dipindah
   ke multisig sebelum volume nyata.
 - **Status tinjauan.** Tinjauan internal ([`docs/security-review.md`](docs/security-review.md))
   mencatat satu temuan medium (sudah diperbaiki) dan tiga temuan rendah atau
@@ -981,7 +981,7 @@ berisi iterasi pertama proyek ini dan sudah digantikan oleh `program/` dan
 | Okt 2026 | Kampanye live pertama dengan toko nyata; submisi Colosseum |
 | Q4 2026 | Plugin attestor untuk Shopify dan WooCommerce; upgrade authority ke multisig |
 | Q1 2027 | Sepuluh pilot dengan aplikasi Solana yang membayar kreator; audit pihak ketiga |
-| 2027 | Pasar sekunder untuk komisi tertunda; biaya pencairan 1% diaktifkan |
+| 2027 | Pasar sekunder untuk komisi tertunda |
 
 ---
 
