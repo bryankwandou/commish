@@ -48,7 +48,7 @@ before any public disclosure.
 
 | # | Severity | Finding | Status |
 | --- | --- | --- | --- |
-| 1 | Medium | Pre-funding a predictable commission address blocks `record_sale` for that order | Mitigated in the official client: order hashes are HMAC-SHA-256 with a key only the attestor holds. A program-side fix is reserved for a future upgrade. |
+| 1 | Medium | Pre-funding a predictable commission address blocks `record_sale` for that order | Mitigated in the official client: order hashes are HMAC-SHA-256 with a key only the attestor holds. A program-side fix is written and tested on branch [`fix/prefund-onchain`](https://github.com/bryankwandou/commish/tree/fix/prefund-onchain) (32 tests pass) but not deployed: the upgrade needs about 0.005 SOL to extend the program account, and that is not funded yet. |
 | 2 | Low | An order hash can be recorded again after its commission closes | Accepted. Only the attestor can record; the guarantee is one open commission per order hash. |
 | 3 | Low (trust) | The attestor can cancel an open commission inside the window, including one sold early | By design: an early buyer owns a claim that holds only if the order survives the refund window. |
 | 4 | Info | USDC has a freeze authority | Outside the program's control. |

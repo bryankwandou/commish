@@ -23,13 +23,14 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             program/target
-          key: sbf-${{ runner.os }}-${{ hashFiles('program/Cargo.lock') }}
-          restore-keys: sbf-${{ runner.os }}-
+          key: sbf-v4.1.2-tools-v1.54-${{ runner.os }}-${{ hashFiles('program/Cargo.lock') }}
 
-      - name: Install Solana CLI (Anza)
+      # Pinned: the mainnet binary was built with Solana 4.1.2 / platform-tools v1.54.
+      # Newer platform-tools reject the panic_immediate_abort build flag.
+      - name: Install Solana CLI 4.1.2 (Anza)
         run: |
           if [ ! -x "$HOME/.local/share/solana/install/active_release/bin/cargo-build-sbf" ]; then
-            sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
+            sh -c "$(curl -sSfL https://release.anza.xyz/v4.1.2/install)"
           fi
           echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
 
@@ -43,8 +44,14 @@ jobs:
         working-directory: program
         run: |
           cargo-build-sbf --version
-          npm run build
+          RUSTC_BOOTSTRAP=1 cargo-build-sbf --tools-version v1.54 -- -Zbuild-std=core -Zbuild-std-features=panic_immediate_abort
           ls -l target/deploy/commish.so
+
+      # The first 9,280 bytes of the mainnet program account (the rest is zero padding).
+      - name: Build matches the mainnet binary
+        working-directory: program
+        run: |
+          echo "126d294003644c26ee27d90e5cbfc09c0c9c5ca996906ba3bf8c5a416f852ac8  target/deploy/commish.so" | sha256sum -c -
 
       - name: LiteSVM tests
         working-directory: program
