@@ -1,12 +1,10 @@
-# Internal security review
+# Security notes
 
-**What this is.** A line-by-line review of `program/src/lib.rs` (516 lines) by the
+**What this is.** A line-by-line check of `program/src/lib.rs` (516 lines) by the
 builder, with findings reproduced on a live validator.
 
-**Status: not audited.**
-
 **Scope.** Every instruction (`create_campaign`, `record_sale`, `cancel`, `release`,
-`withdraw`, `sell`), the entrypoint, the CPI helper and account closing. Reviewed
+`withdraw`, `sell`), the entrypoint, the CPI helper and account closing. Checked
 2026-09-27 against the binary deployed on mainnet
 (`CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB`).
 

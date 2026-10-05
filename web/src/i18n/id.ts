@@ -171,8 +171,8 @@ const id: Dictionary = {
         a: "Bisa. Program dan klien-nya open source, dan siapa pun bisa memanggil pencairan.",
       },
       {
-        q: "Bagaimana status keamanannya?",
-        a: "Status: not audited. Programnya kecil (di bawah 10 KB) dan open source, dan setiap aturan di halaman ini punya tes yang mencoba membobolnya. Gunakan nominal wajar.",
+        q: "Bagaimana programnya diuji?",
+        a: "Programnya kecil (di bawah 10 KB) dan open source, dan setiap aturan di halaman ini punya tes yang mencoba membobolnya. Gunakan nominal wajar.",
       },
     ],
   },
