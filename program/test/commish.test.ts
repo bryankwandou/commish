@@ -551,6 +551,29 @@ describe("documented behaviour", () => {
   });
 });
 
+describe("machine payments (holdback)", () => {
+  test("a 0.05 USDC paid call reserves a 10% router cut, held 10 minutes", async () => {
+    // The tool's vault starts empty: the agent's payment is the only money in it.
+    const s = await setup({ hold: 600n, budget: 0n });
+    const caller = await signer();
+    const callerAta = await fund(caller.address, USDC(1));
+    const { tokenTransferIx } = await import("../../web/src/lib/commish/program.ts");
+    await ok([tokenTransferIx(callerAta, s.vault, caller.address, USDC(0.05))], [caller]);
+    const x = await sale(s, `x402:${"5".repeat(88)}`, USDC(0.05));
+    await ok([x.instruction], x.signers);
+    assert.equal(commissionOf(x.commission)!.amount, 5_000n);
+    // The tool keeps its 0.045; the router's 0.005 cannot be withdrawn.
+    await fails(6010, [withdrawIx({ brand: s.brand.address, campaign: s.campaign, vault: s.vault, dest: s.brandAta, amount: USDC(0.045) + 1n })], [s.brand]);
+    await ok([withdrawIx({ brand: s.brand.address, campaign: s.campaign, vault: s.vault, dest: s.brandAta, amount: USDC(0.045) })], [s.brand]);
+    const rel = releaseIx({ campaign: s.campaign, vault: s.vault, commission: x.commission, payeeToken: s.creatorAta, rentPayer: s.attestor.address, treasuryToken: treasuryAta });
+    await fails(6011, [rel], [caller]);
+    warp(600n);
+    await ok([rel], [caller]); // released by a third party, no router signature
+    assert.equal(balance(s.creatorAta), 4_950n); // 5,000 minus the 1% fee
+    assert.equal(balance(s.vault), 0n);
+  });
+});
+
 describe("binary", () => {
   test("fits the deploy budget and reports compute units", async () => {
     const { statSync } = await import("node:fs");

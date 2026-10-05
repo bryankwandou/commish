@@ -1,0 +1,11 @@
+{
+  "name": "commish-agents",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "soak": "tsx soak.ts",
+    "relayer": "tsx relayer.ts",
+    "keeper": "tsx keeper.ts"
+  }
+}
