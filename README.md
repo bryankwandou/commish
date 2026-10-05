@@ -523,7 +523,9 @@ the maintainer opened every pull request by hand. This is not a third-party audi
   mitigation shown to hold
 - the deployed mainnet binary compared byte for byte with a build of this source
 - residual findings documented, including one Medium (mitigated in the client;
-  program-side fix reserved for a future upgrade)
+  program-side fix written and tested on branch
+  [`fix/prefund-onchain`](https://github.com/bryankwandou/commish/tree/fix/prefund-onchain), not deployed yet; the upgrade is not funded
+  yet)
 
 Full record: [docs/INTERNAL_SECURITY_AUDIT.md](docs/INTERNAL_SECURITY_AUDIT.md).
 Reporting policy: [SECURITY.md](SECURITY.md).
@@ -976,7 +978,9 @@ maintainer. Ini bukan audit pihak ketiga.
 - skenario griefing pre-funding direproduksi; mitigasi HMAC-SHA-256 berkunci terbukti bertahan
 - binary di mainnet dibandingkan byte per byte dengan build dari source ini
 - temuan sisa didokumentasikan, termasuk satu Medium (dimitigasi di klien;
-  perbaikan di sisi program disiapkan untuk upgrade berikutnya)
+  perbaikan di sisi program sudah ditulis dan dites di branch
+  [`fix/prefund-onchain`](https://github.com/bryankwandou/commish/tree/fix/prefund-onchain), belum di-deploy karena biaya upgrade
+  belum tersedia)
 
 Catatan lengkap: [docs/INTERNAL_SECURITY_AUDIT.md](docs/INTERNAL_SECURITY_AUDIT.md).
 Kebijakan pelaporan: [SECURITY.md](SECURITY.md).

@@ -1,4 +1,6 @@
-name: Security & Code Quality
+# Advisory only: every step reports findings in the log but never fails the run.
+# A green check here does not mean the audits found nothing; read the log.
+name: Security & Code Quality (advisory)
 
 on:
   push:
@@ -22,13 +24,13 @@ jobs:
         with:
           components: clippy
 
-      - name: Rust Security Audit
+      - name: Rust Security Audit (advisory)
         uses: rustsec/audit-check@v2.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
 
-      - name: Run Cargo Clippy (Rust)
+      - name: Run Cargo Clippy (Rust) (advisory)
         run: |
           cargo clippy --all-targets --all-features -- -D warnings
         continue-on-error: true
@@ -38,12 +40,12 @@ jobs:
         with:
           node-version: 22
 
-      - name: Root NPM Audit & Typecheck
+      - name: Root NPM Audit & Typecheck (advisory)
         run: |
           npm audit --audit-level=high || true
           npm run lint || true
 
-      - name: Web Client Typecheck & Lint
+      - name: Web Client Typecheck & Lint (advisory)
         working-directory: web
         run: |
           npm ci
