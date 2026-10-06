@@ -3,6 +3,7 @@ import { address, type Address, type Instruction } from "@solana/kit";
 import { Connection, Keypair, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
 import bs58 from "bs58";
 import { commissionsFor } from "./chain";
+import { beamEnabled, beamTipIx, rpcUrl } from "./solami";
 import {
   COMMISSION_LEN,
   TREASURY,
@@ -19,7 +20,7 @@ import {
  * in the server environment and its blast radius is the vault's unreserved
  * balance. The keeper side only calls the permissionless `release`.
  */
-const RPC = process.env.RPC_URL || "https://api.mainnet-beta.solana.com";
+const RPC = rpcUrl();
 
 function keypair(env: string): Keypair | null {
   const v = process.env[env]?.trim();
@@ -41,6 +42,10 @@ const web3 = (ix: Instruction) =>
 /** Sends one transaction and waits up to ~20 s for confirmation. Returns the signature, or throws. */
 async function send(conn: Connection, signer: Keypair, ixs: Instruction[]): Promise<string> {
   const t = new Transaction().add(...ixs.map(web3));
+  // Beam (Solami): a tip transfer in the transaction routes the plain
+  // sendRawTransaction below through Beam. Null when Beam is off.
+  const tip = beamEnabled() ? await beamTipIx(signer.publicKey) : null;
+  if (tip) t.add(tip);
   t.feePayer = signer.publicKey;
   t.recentBlockhash = (await conn.getLatestBlockhash("confirmed")).blockhash;
   t.sign(signer);
