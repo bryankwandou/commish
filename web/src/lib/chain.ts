@@ -1,4 +1,5 @@
 import "server-only";
+import { rpcUrl } from "./solami";
 import { address, type Address } from "@solana/kit";
 import {
   CAMPAIGN_LEN,
@@ -11,7 +12,7 @@ import {
   type Commission,
 } from "./commish/program";
 
-const RPC = process.env.RPC_URL || process.env.NEXT_PUBLIC_RPC_URL || "https://api.mainnet-beta.solana.com";
+const RPC = rpcUrl();
 
 async function rpc<T>(method: string, params: unknown[], revalidate = 15): Promise<T> {
   const r = await fetch(RPC, {

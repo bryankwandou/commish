@@ -1,4 +1,5 @@
 import "server-only";
+import { rpcUrl } from "./solami";
 import { address, type Address } from "@solana/kit";
 import {
   PROGRAM_ID,
@@ -12,7 +13,7 @@ import { SITE_URL } from "./config";
 
 export const PRICE = 50_000n;
 export const ROUTER_BPS = 1000;
-const RPC = process.env.RPC_URL || process.env.NEXT_PUBLIC_RPC_URL || "https://api.mainnet-beta.solana.com";
+const RPC = rpcUrl();
 
 export class RpcError extends Error {}
 

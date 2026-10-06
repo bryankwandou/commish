@@ -1,7 +1,8 @@
+import { rpcUrl } from "@/lib/solami";
 // JSON-RPC pass-through for the browser wallet flow. Only the read and send
 // methods the app uses are forwarded, so the upstream endpoint (which may
 // carry a private key in RPC_URL) is never exposed or abused.
-const UPSTREAM = process.env.RPC_URL || "https://api.mainnet-beta.solana.com";
+const UPSTREAM = rpcUrl();
 const ALLOWED = new Set([
   "getLatestBlockhash",
   "isBlockhashValid",
