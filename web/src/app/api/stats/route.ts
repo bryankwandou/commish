@@ -3,7 +3,7 @@ import { allCampaigns, allCommissions, isDeployed } from "@/lib/chain";
 export const revalidate = 60;
 
 export async function GET() {
-  const size = 9296;
+  const size = 9272;
   try {
     const deployed = await isDeployed();
     if (!deployed) return Response.json({ deployed, size, campaigns: 0, commissions: 0, reserved: "0", paid: "0" });

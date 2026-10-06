@@ -19,9 +19,9 @@ async function closedHistory(campaign: string, vault: string, openPdas: Set<stri
     if (cands.length >= MAX_CLOSED_SCAN) break;
   }
   const out: Closed[] = [];
-  for (let i = 0; i < cands.length; i += 8) {
+  for (let i = 0; i < cands.length; i += 3) {
     const part = await Promise.all(
-      cands.slice(i, i + 8).map(async ({ sig, pda }): Promise<Closed | null> => {
+      cands.slice(i, i + 3).map(async ({ sig, pda }): Promise<Closed | null> => {
         const last = await rpc<{ signature: string; err: unknown; blockTime: number | null }[]>("getSignaturesForAddress", [pda, { limit: 1, commitment: "confirmed" }]);
         if (!last.length || last[0].err) return null;
         const tx = await getTx(last[0].signature);

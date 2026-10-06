@@ -7,9 +7,9 @@ import { useI18n } from "../providers";
 import { fmt } from "@/i18n";
 
 type Stage = "idle" | "held" | "paid";
-const WINDOW_DAYS = 7;
-const BUDGET = 200;
-const CUT = 25;
+const WINDOW_DAYS = 10; // minutes: the live campaign holds for 600 s
+const BUDGET = 50;
+const CUT = 5;
 
 /**
  * Interactive walk through one commission: record a sale, hold it through

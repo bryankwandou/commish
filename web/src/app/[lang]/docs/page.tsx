@@ -59,10 +59,12 @@ export default async function Docs({ params }: PageProps<"/[lang]/docs">) {
 
           <H id="overview">{s.overview}</H>
           <P>
-            Commish is one Solana program written with Pinocchio. A brand creates a campaign that names a commission rate, a refund window and an
-            attestor key, and funds the campaign&apos;s USDC vault. The attestor records each paid, referred order; the program reserves the creator&apos;s
-            cut in a commission account. After the refund window anyone can release the payout to the payee. Before that, the payee can sell the
-            commission to a buyer for an agreed price.
+            Commish is one Solana program written with Pinocchio, used as a holdback for agent payments. A tool creates a campaign that names a
+            router cut, a refund window and an attestor key (the relayer). An agent pays the tool over HTTP 402 in USDC, straight into the
+            campaign&apos;s vault, with a memo naming the router that sent it. The relayer reads that payment on-chain and records it; the program
+            reserves the router&apos;s cut in a commission account. After the refund window anyone can release the cut to the payee. Before that, the
+            payee can sell it to a buyer for an agreed price. On-chain the instruction and field names are the original ones: the tool is the{" "}
+            <C>brand</C>, the router is the <C>creator</C>, and a paid call is a <C>record_sale</C>.
           </P>
           <Table
             head={["", ""]}
@@ -70,7 +72,8 @@ export default async function Docs({ params }: PageProps<"/[lang]/docs">) {
               ["Program", <C key="p">{PROGRAM_ADDRESS}</C>],
               ["Token", <span key="t">USDC <C>EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v</C></span>],
               ["Source", <a key="s" href={REPO_URL} className="text-paid hover:underline">{REPO_URL.replace("https://", "")}</a>],
-              ["Binary", "9,296 bytes, SBPF v0, built with build-std and panic_immediate_abort"],
+              ["Binary", "9,272 bytes, SBPF v0, built with build-std and panic_immediate_abort"],
+              ["402 endpoint", <C key="e">https://getcommish.vercel.app/api/agent/call</C>],
             ]}
           />
 
@@ -110,10 +113,10 @@ export default async function Docs({ params }: PageProps<"/[lang]/docs">) {
 
           <H id="integrate">{s.integrate}</H>
           <ol className="mb-6 list-decimal space-y-2 pl-5 text-muted">
-            <li>Create a campaign in the brand console and choose who records sales: the brand wallet, or a key held by your shop server.</li>
-            <li>Creators share your product links with <C>?ref=&lt;their wallet&gt;</C>. Store the ref with the order at checkout.</li>
-            <li>When the order is paid, compute <C>orderHash(campaign, orderId, key)</C> with a key only the attestor holds and send <C>record_sale</C> signed by the attestor.</li>
-            <li>If the order is refunded inside the window, send <C>cancel</C>. After the window, anyone can send <C>release</C>.</li>
+            <li>Create a campaign in the tool console with your relayer key as the attestor, a router cut and a refund window.</li>
+            <li>Answer unpaid calls with <C>402 Payment Required</C>: the price, the vault address and the memo format <C>commish:&lt;router wallet&gt;</C>.</li>
+            <li>When the agent retries with <C>X-Payment: &lt;signature&gt;</C>, read the transaction, check that the vault received at least the price in USDC and that the memo names the <C>?ref=</C> router, then send <C>record_sale</C> with order hash <C>sha256(&quot;commish:x402:&quot; + campaign + &quot;:&quot; + signature)</C>.</li>
+            <li>If the call is refunded inside the window, send <C>cancel</C>. After the window, anyone can send <C>release</C>. The live endpoint does all of this; its source is <C>web/src/app/api/agent/call/route.ts</C>.</li>
           </ol>
           <P>
             The client in <C>web/src/lib/commish/program.ts</C> builds every instruction and derives every address. It depends only on
@@ -122,12 +125,12 @@ export default async function Docs({ params }: PageProps<"/[lang]/docs">) {
 
           <H id="security">{s.security}</H>
           <ul className="mb-6 list-disc space-y-2 pl-5 text-muted">
-            <li>The attestor is trusted to report real sales. The program cannot tell whether an off-chain order happened; it removes the brand&apos;s ability to delay or claw back a commission once recorded.</li>
-            <li>Funds leave the vault only through <C>release</C> (to the payee&apos;s token account, after the window) and <C>withdraw</C> (the unreserved part, to the brand).</li>
+            <li>The program cannot see the payment. The relayer (the attestor) records a call only after it has read a successful USDC transfer into the vault. A compromised relayer key could reserve fake cuts, but only up to the vault&apos;s unreserved balance.</li>
+            <li>Funds leave the vault only through <C>release</C> (to the payee&apos;s token account, after the window) and <C>withdraw</C> (the unreserved part, to the tool).</li>
             <li>Only the legacy SPL Token program is accepted, and every token account is checked for the campaign&apos;s mint.</li>
-            <li>A commission address that already holds lamports makes <C>record_sale</C> fail for that order. Derive order hashes with a key only the attestor holds (<C>orderHash(campaign, orderId, key)</C>, HMAC-SHA256) so nobody can predict the next address and block it; the brand console does this with a key derived from the attestor wallet.</li>
-            <li>An order can be recorded again after its commission is paid or cancelled, because the account is closed. Only the attestor can record, so this is the attestor&apos;s responsibility.</li>
-            <li>The program is covered by 34 end-to-end tests that run against the compiled binary, most of them attacks that must fail.</li>
+            <li>Lamports sent to a commission address before it exists no longer block <C>record_sale</C>: since the 5 Oct 2026 upgrade the program creates the account with <C>CreateAccountAllowPrefund</C>, so an unkeyed order hash is safe.</li>
+            <li>A payment could be recorded again after its commission is paid or cancelled, because the account is closed. The relayer refuses any payment whose commission address has a successful <C>record_sale</C> in its history, so one payment earns one cut.</li>
+            <li>The program is covered by 33 end-to-end tests that run against the compiled binary, most of them attacks that must fail.</li>
           </ul>
         </article>
       </main>

@@ -55,7 +55,7 @@ export function Hero() {
             {t.hero.sub}
           </motion.p>
           <motion.div initial={reduce ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }} className="mt-8 flex flex-wrap gap-3">
-            <Link href={`/${lang}/brand`} className="group inline-flex h-11 items-center gap-2 rounded-xl bg-paid px-5 text-sm font-semibold text-ink transition hover:brightness-110">
+            <Link href={`/${lang}/agent`} className="group inline-flex h-11 items-center gap-2 rounded-xl bg-paid px-5 text-sm font-semibold text-ink transition hover:brightness-110">
               {t.hero.ctaBrand}
               <ArrowRight size={16} className="transition group-hover:translate-x-0.5" />
             </Link>
@@ -108,7 +108,7 @@ export function Proof() {
   }, []);
   const cells = [
     { k: s?.deployed ? t.proof.program : t.proof.pending, v: <a href={explorerAddress(PROGRAM_ADDRESS)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-mono text-sm hover:text-paid">{short(PROGRAM_ADDRESS, 5)}<ArrowUpRight size={13} /></a> },
-    { k: t.proof.size, v: <span><Counter value={s?.size ?? 9296} /> <span className="text-sm text-muted">bytes</span></span> },
+    { k: t.proof.size, v: <span><Counter value={s?.size ?? 9272} /> <span className="text-sm text-muted">bytes</span></span> },
     { k: t.proof.instructions, v: <Counter value={6} /> },
     { k: t.proof.tests, v: <Counter value={26} /> },
     { k: t.proof.license, v: "Apache-2.0" },
@@ -226,8 +226,8 @@ export function Rules() {
 
 export function Early() {
   const { t } = useI18n();
-  const [amount, setAmount] = useState(250);
-  const [days, setDays] = useState(21);
+  const [amount, setAmount] = useState(50);
+  const [days, setDays] = useState(7);
   const [disc, setDisc] = useState(2.5);
   const get = amount * (1 - disc / 100);
   const apr = useMemo(() => (get > 0 ? (amount / get - 1) * (365 / days) * 100 : 0), [amount, get, days]);
@@ -243,7 +243,7 @@ export function Early() {
         </Reveal>
         <Reveal delay={0.1}>
           <div className="rounded-2xl border border-line bg-surface p-6">
-            <Slider label={t.early.commission} value={amount} set={setAmount} min={10} max={2000} step={10} show={`${money(amount)} USDC`} />
+            <Slider label={t.early.commission} value={amount} set={setAmount} min={1} max={500} step={1} show={`${money(amount)} USDC`} />
             <Slider label={t.early.days} value={days} set={setDays} min={1} max={90} step={1} show={`${days}`} />
             <Slider label={t.early.discount} value={disc} set={setDisc} min={0.5} max={10} step={0.5} show={`${disc.toFixed(1)}%`} />
             <div className="mt-6 grid grid-cols-2 gap-3">
@@ -317,35 +317,38 @@ export function Sides() {
 
 // --------------------------------------------------------------- integrate
 
-const CODE_TS = `// Copy web/src/lib/commish/program.ts from the Commish repository.
-import { orderHash, recordSaleIx, COMMISSION_LEN } from "./commish/program";
+const CODE_TS = `// The relayer, after it has read a successful USDC transfer into the vault.
+import { recordSaleIx, COMMISSION_LEN } from "./commish/program";
+import { createHash } from "node:crypto";
 
-// Called by your shop when a referred order is paid.
-const hash = await orderHash(campaign, order.id, SHOP_SECRET); // HMAC key only your server knows
+// One payment, one cut: the order hash is bound to the payment signature.
+const hash = createHash("sha256").update("commish:x402:" + campaign + ":" + paymentSig).digest();
 const { instruction } = await recordSaleIx({
-  attestor: attestor.address,   // the key named by the campaign
-  payer: attestor.address,      // rent for the commission account
+  attestor: relayer.address,    // the key named by the campaign
+  payer: relayer.address,       // rent for the commission account
   campaign,
   vault,
   orderHash: hash,
-  orderAmount: 250_000000n,     // 250.00 USDC, 6 decimals
-  creator: referrerWallet,
+  orderAmount: 50_000n,         // 0.05 USDC paid by the agent, 6 decimals
+  creator: router,              // from the payment memo commish:<router>
   lamports: await rpc.getMinimumBalanceForRentExemption(BigInt(COMMISSION_LEN)).send(),
 });
-await sendAndConfirm([instruction], [attestor]); // your usual send helper`;
+await sendAndConfirm([instruction], [relayer]); // your usual send helper`;
 
-const CODE_HOOK = `order.paid      → record_sale   (reserve the cut)
-order.refunded  → cancel        (only inside the window)
-window closed   → release       (anyone may call it)
+const CODE_HOOK = `GET /api/agent/call   → 402 Payment Required (price, vault, memo)
+agent pays + retries  → record_sale   (reserve the router's 10%)
+refund proof on-chain → cancel        (only inside the window)
+window closed         → release       (anyone may call it)
 
-creator wants cash now
-                → sell          (buyer pays price, becomes payee)`;
+router wants cash now
+                      → sell          (buyer pays price, becomes payee)`;
 
 const CODE_ADDR = `program      CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB
 usdc mint    EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+endpoint     https://getcommish.vercel.app/api/agent/call
 
-campaign     PDA ["campaign", brand, id_le_u64]
-commission   PDA ["commission", campaign, sha256(order)]
+campaign     PDA ["campaign", tool, id_le_u64]
+commission   PDA ["commission", campaign, sha256("commish:x402:" campaign ":" payment)]
 vault        ATA (owner = campaign, mint = usdc)`;
 
 function highlight(code: string) {
@@ -442,7 +445,7 @@ export function Final() {
             <h2 className="mx-auto max-w-2xl text-balance text-3xl font-semibold tracking-[-0.03em] sm:text-5xl">{t.final.title}</h2>
             <p className="mt-4 text-muted">{t.final.sub}</p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <Link href={`/${lang}/brand`} className="inline-flex h-11 items-center gap-2 rounded-xl bg-paid px-5 text-sm font-semibold text-ink transition hover:brightness-110">
+              <Link href={`/${lang}/agent`} className="inline-flex h-11 items-center gap-2 rounded-xl bg-paid px-5 text-sm font-semibold text-ink transition hover:brightness-110">
                 {t.hero.ctaBrand} <ArrowRight size={16} />
               </Link>
               <Link href={`/${lang}/creator`} className="inline-flex h-11 items-center rounded-xl border border-line px-5 text-sm font-medium transition hover:border-line-strong">

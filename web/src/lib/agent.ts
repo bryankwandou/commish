@@ -17,22 +17,39 @@ const RPC = rpcUrl();
 
 export class RpcError extends Error {}
 
+// Solami's free tier allows 10 requests/s; the live page bursts past that.
+// A rate-limited call waits and retries, then falls back to RPC_URL.
+const FALLBACK = process.env.RPC_URL && process.env.RPC_URL !== RPC ? process.env.RPC_URL : null;
+
+async function rpcOnce<T>(url: string, method: string, params: unknown[]): Promise<{ limited: boolean; result?: T; error?: string }> {
+  const r = await fetch(url, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+    cache: "no-store",
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (r.status === 429) return { limited: true };
+  const j: { error?: { code?: number; message: string }; result?: T } = await r.json();
+  if (j.error) return { limited: j.error.code === 429 || /rate.?limit|too many/i.test(j.error.message), error: j.error.message };
+  return { limited: false, result: j.result as T };
+}
+
 export async function rpc<T>(method: string, params: unknown[]): Promise<T> {
-  let j: { error?: { message: string }; result?: T };
-  try {
-    const r = await fetch(RPC, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
-      cache: "no-store",
-      signal: AbortSignal.timeout(15_000),
-    });
-    j = await r.json();
-  } catch (e) {
-    throw new RpcError(`${method}: ${e instanceof Error ? e.message : "request failed"}`);
+  const tries: [string, number][] = [[RPC, 0], [RPC, 400], [RPC, 1200], ...(FALLBACK ? ([[FALLBACK, 0]] as [string, number][]) : [])];
+  let last = "request failed";
+  for (const [url, wait] of tries) {
+    if (wait) await new Promise((s) => setTimeout(s, wait));
+    try {
+      const o = await rpcOnce<T>(url, method, params);
+      if (!o.limited && o.error === undefined) return o.result as T;
+      last = o.error ?? "rate limited";
+      if (!o.limited) break; // a real RPC error; retrying will not change it
+    } catch (e) {
+      last = e instanceof Error ? e.message : "request failed";
+    }
   }
-  if (j.error) throw new RpcError(`${method}: ${j.error.message}`);
-  return j.result as T;
+  throw new RpcError(`${method}: ${last}`);
 }
 
 export const rpcDown = () => err(503, "rpc_unavailable", "Solana RPC is unavailable or timed out. Retry shortly.");
