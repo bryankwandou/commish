@@ -1,48 +1,73 @@
-<p align="center">
-  <img src="docs/images/banner.png" alt="Commish: commissions that pay themselves" width="100%">
-</p>
+# Commish: USDC Holdback for x402 Agent Payments
 
-# Commish: Affiliate Commissions That Pay Themselves
-
-> **Affiliate commissions held in USDC on Solana until the refund window closes, then paid out by anyone, to the creator only. A creator who cannot wait sells the pending commission for cash today.**
+> **Agents pay tools per call over HTTP 402. Commish holds the router's cut on Solana until the paid call can no longer be refunded, then anyone can release it, and it can only go to the router.**
 
 [![Solana Mainnet](https://img.shields.io/badge/Solana-Mainnet--Beta-9945FF?logo=solana&logoColor=white)](https://explorer.solana.com/address/CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB)
-[![Live App](https://img.shields.io/badge/Live%20App-getcommish.vercel.app-111111?logo=vercel&logoColor=white)](https://getcommish.vercel.app)
+[![Demo](https://img.shields.io/badge/Demo-2%3A13%20on%20mainnet-111111?logo=vercel&logoColor=white)](https://getcommish.vercel.app/en/demo)
+[![x402](https://img.shields.io/badge/x402-HTTP%20402%20endpoint-FF6B00)](https://getcommish.vercel.app/en/agent)
 [![Pinocchio](https://img.shields.io/badge/Pinocchio-0.11-FF6B00)](https://github.com/anza-xyz/pinocchio)
-[![Program size](https://img.shields.io/badge/Program-9%2C296%20bytes-2F80ED)](#the-program)
-[![Tests](https://img.shields.io/badge/Tests-32%20passing-2EA043)](#guarantees-and-the-tests-that-attack-them)
+[![Program size](https://img.shields.io/badge/Program-9%2C272%20bytes-2F80ED)](#the-program)
+[![Tests](https://img.shields.io/badge/Tests-33%20passing-2EA043)](#guarantees-and-the-tests-that-attack-them)
 [![Security Review](https://img.shields.io/badge/Security-Internal%20Review-blue)](SECURITY.md)
-[![USDC](https://img.shields.io/badge/Token-USDC-2775CA)](https://explorer.solana.com/address/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
-[![Colosseum](https://img.shields.io/badge/Colosseum-Crypto%20World's%20Fair%202026-FF6B00)](https://www.colosseum.org)
+[![Colosseum](https://img.shields.io/badge/Colosseum-Crypto%20World's%20Fair%202026-FF6B00)](https://arena.colosseum.org/projects/explore/commish)
+
+<p align="center">
+  <a href="https://getcommish.vercel.app/en/demo"><img src="web/public/demo/poster.jpg" alt="Watch the demo: one full x402 cycle on Solana mainnet" width="100%"></a>
+  <br><sub>▶ <a href="https://getcommish.vercel.app/en/demo">Watch the 2:13 demo</a>: one full cycle recorded on Solana mainnet, 6 Oct 2026. Nothing simulated.</sub>
+</p>
 
 ---
 
 | | |
 |---|---|
-| **Live app** | [getcommish.vercel.app](https://getcommish.vercel.app) (English, Bahasa Indonesia, Español, 中文; light and dark) |
-| **Docs** | [getcommish.vercel.app/en/docs](https://getcommish.vercel.app/en/docs) |
-| **Security Policy** | [SECURITY.md](SECURITY.md) · [Internal Security Audit](docs/INTERNAL_SECURITY_AUDIT.md) |
+| **Demo video** | [getcommish.vercel.app/en/demo](https://getcommish.vercel.app/en/demo) |
+| **Try the 402 endpoint** | [getcommish.vercel.app/en/agent](https://getcommish.vercel.app/en/agent) · `GET /api/agent/call?market=bitcoin` |
+| **Live ledger (read from mainnet)** | [getcommish.vercel.app/en/live](https://getcommish.vercel.app/en/live) |
+| **For judges** | [README-JUDGES.md](README-JUDGES.md) |
 | **Program (mainnet)** | [`CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB`](https://explorer.solana.com/address/CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB) |
-| **Deploy transaction** | [`vZRdesXg…2xWPk9Cv6`](https://explorer.solana.com/tx/vZRdesXgmPhV15JwAHy5akzcsn5AWssFYGne5mCcbEcDqJufqxwZWzwSUXHbUoNKBEzaMaryR1h2kB2xWPk9Cv6) |
-| **Upgrade authority** | [`42azYTNiC4bp6UtXXpEQ49adNWBbM6Hhx84xQAtEPfUe`](https://explorer.solana.com/address/42azYTNiC4bp6UtXXpEQ49adNWBbM6Hhx84xQAtEPfUe) (single-key control; migration to Squads multisig planned before volume) |
-| **Settlement token** | USDC [`EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`](https://explorer.solana.com/address/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v) |
-| **Pitch deck** | [PDF](pitch/commish-pitch.pdf) · [PowerPoint](pitch/commish-pitch.pptx) · [editable PowerPoint](pitch/commish-pitch-editable.pptx) |
-| **Videos** | [Launch video, 23 s](brag-output/brag.mp4) · [Product walkthrough](docs/video/commish-walkthrough.mp4) |
-| **Repository** | [github.com/bryankwandou/commish](https://github.com/bryankwandou/commish) |
+| **Live campaign** | [`GvuUZi4ggeH3FC3AC7RkApQQHBRizwKW5XTRtRWStMmR`](https://explorer.solana.com/address/GvuUZi4ggeH3FC3AC7RkApQQHBRizwKW5XTRtRWStMmR) (10% router cut, 600 s refund window) |
+| **Security** | [SECURITY.md](SECURITY.md) · [Internal Security Audit](docs/INTERNAL_SECURITY_AUDIT.md) · [Threat model](docs/threat-model.md) |
+| **Upgrade authority** | [`42azYTNiC4bp6UtXXpEQ49adNWBbM6Hhx84xQAtEPfUe`](https://explorer.solana.com/address/42azYTNiC4bp6UtXXpEQ49adNWBbM6Hhx84xQAtEPfUe) (single key today; Squads multisig planned) |
+| **Run it on your own Solami key** | [instructions](#run-it-on-your-own-solami-key) |
+
+## How it works
+
+```
++---------+    +-----------+    +---------+    +-------------------+
+|  Pay    | -> |  Reserve  | -> |  Hold   | -> | Release  or  Sell |
+| agent   |    | relayer   |    | 600 s   |    | keeper    buyer   |
+| USDC to |    | records   |    | refund  |    | pays      pays    |
+| vault   |    | the cut   |    | window  |    | router    now     |
++---------+    +-----------+    +---------+    +-------------------+
+```
+
+1. **Pay.** An agent calls the tool and gets HTTP 402 with a price, a vault and a memo. It pays 0.05 USDC into the campaign vault, with a memo naming its router, then retries with the payment signature and gets the data (the first paid tool is [Panta](https://www.panta.market/) prediction-market data).
+2. **Reserve.** The relayer verifies the payment on-chain and calls `record_sale`. The program reserves the router's 10% in its own account, where the tool cannot withdraw it.
+3. **Hold.** For 600 seconds a refund can `cancel` it.
+4. **Release or sell.** After the window anyone can call `release`, and it can only pay the router (minus a 1% protocol fee). Before that, the router may `sell` the pending claim to a buyer.
+
+## Proof: one full cycle on mainnet (6 Oct 2026)
+
+| Time (UTC) | Step | Transaction |
+|---|---|---|
+| 13:22:52 | Agent pays 0.05 USDC into the vault | [`47MtDwTY…R12SP`](https://explorer.solana.com/tx/47MtDwTYEsu4xmNyizqXSuvpbgRwmS1g76W4UdnqBUYFBwpUWE763SUXFVaDxC3onKpUR6cZ1Xb4EbFryHSR12SP) |
+| 13:22:54 | Relayer records it; 0.005 USDC held by the program | [`2GXGEqG9…KD5F5`](https://explorer.solana.com/tx/2GXGEqG92tbFqummdYMSePphoGHmemWcWN1F6qfr9Ho5daGJKyHXSsJNNLApkXaeja2YKxeGCUYX7vV7XXFKD5F5) |
+| 13:33:12 | Window closed at 13:32:54; keeper releases 0.00495 USDC to the router | [`5UP1zayt…18sT3`](https://explorer.solana.com/tx/5UP1zaytSZYa8H6p6xFJSd8fccJLjnkeMg37UuUiVPrXyv2Cs5Xks28dtiBUkMxmd5wj73XsSux96Aivis118sT3) |
+
+Traction, stated plainly: every payment so far comes from the founder's own test agent. Outside agents: 0.
+
+## Built with
+
+- **Solana program:** Rust, Pinocchio 0.11, no Anchor; 9,272-byte binary; 33 LiteSVM tests against the compiled binary.
+- **Panta API:** the paid tool behind the 402 endpoint (`web/src/lib/panta.ts`).
+- **Solami RPC:** every server-side chain read (`web/src/lib/solami.ts`).
+- **Web:** Next.js on Vercel: the 402 endpoint, relayer routes and live ledger.
 
 ---
 
-## Production Status
-
-| Status | What it means |
-|--------|---------------|
-| **LIVE ON MAINNET** | The program runs on Solana mainnet-beta; deploy cost 0.04901 SOL |
-| **NON-CUSTODIAL** | Funds sit in program-owned vaults. No server, and not the Commish team, can move them |
-| **NO BACKEND KEYS** | The website holds no private key. Every transaction is signed in the user's wallet |
-| **WORKS WITHOUT THE WEBSITE** | `release` needs no signer, so a due commission can be paid from any Solana client |
-| **INTERNAL REVIEWED & ATTACK-TESTED** | Internal line-by-line review completed (no external third-party audit yet); 32 compiled-binary attack tests and a 41-check local validator lifecycle run passed |
-| **MULTILINGUAL** | English, Bahasa Indonesia, Español, 中文; light and dark themes; phone-first layout |
+> **About the sections below.** The Commish program was first built for affiliate commissions, and the rest of this README still describes it in those terms. The program did not change for x402; only the roles moved:
+> brand → **tool treasury**, attestor → **relayer**, creator → **router**, order → **paid call**, refund window → **600-second holdback**.
 
 ---
 
@@ -286,7 +311,7 @@ release.
 
 Written with [Pinocchio](https://github.com/anza-xyz/pinocchio) 0.11: no
 Anchor, no heap allocation, no serialization library. Source:
-[`program/src/lib.rs`](program/src/lib.rs), 516 lines.
+[`program/src/lib.rs`](program/src/lib.rs), 542 lines.
 
 ### Size and deploy cost
 
@@ -681,7 +706,7 @@ Music: "Happy Beats / Business Moves" Vol. 10 and Vol. 12 by Sascha Ende
 | **NON-KUSTODIAL** | Dana ada di vault milik program. Tidak ada server, termasuk tim Commish, yang bisa memindahkannya |
 | **TANPA KUNCI DI SERVER** | Website tidak menyimpan private key. Setiap transaksi ditandatangani di wallet pengguna |
 | **TETAP JALAN TANPA WEBSITE** | `release` tidak butuh penanda tangan, jadi komisi yang jatuh tempo bisa dibayar dari klien Solana mana pun |
-| **REVIEW INTERNAL & DIUJI DENGAN SERANGAN** | Pemeriksaan internal baris-per-baris selesai (belum ada audit independen pihak ketiga); 32 tes serangan binary dan 41 pemeriksaan siklus penuh lolos di validator lokal |
+| **REVIEW INTERNAL & DIUJI DENGAN SERANGAN** | Pemeriksaan internal baris-per-baris selesai (belum ada audit independen pihak ketiga); 33 tes serangan binary dan 41 pemeriksaan siklus penuh lolos di validator lokal |
 | **MULTIBAHASA** | English, Bahasa Indonesia, Español, 中文; tema terang dan gelap; tata letak untuk ponsel |
 
 ---
@@ -839,7 +864,7 @@ pencairan.
 ## Program On-Chain
 
 Ditulis dengan Pinocchio 0.11: tanpa Anchor, tanpa alokasi heap, tanpa library
-serialisasi. Kode sumber: [`program/src/lib.rs`](program/src/lib.rs), 516 baris.
+serialisasi. Kode sumber: [`program/src/lib.rs`](program/src/lib.rs), 542 baris.
 
 **Ukuran dan biaya deploy.** Sewa mainnet adalah `(byte + 128) × 5.080`
 lamport. Data program 9.341 byte (0,04810252 SOL) ditambah akun program 36
@@ -857,7 +882,7 @@ Build pertama berukuran 25.664 byte (sekitar 0,13 SOL). Ukurannya turun ke
   sewa minimum.
 - Aritmetika checked untuk input yang bisa overflow.
 
-32 tes berjalan terhadap build yang persis sama, jadi pengecilan ukuran ini
+33 tes berjalan terhadap build yang persis sama, jadi pengecilan ukuran ini
 sudah diuji, bukan diasumsikan.
 
 | # | Instruksi | Penanda tangan | Fungsi | Compute unit |
@@ -954,7 +979,7 @@ Perintah untuk memverifikasi sendiri ada di bagian [On-Chain Proof](#on-chain-pr
 # Program
 cd program && npm ci
 npm run build   # target/deploy/commish.so, 9.272 byte
-npm test        # 32 tes terhadap binary hasil kompilasi
+npm test        # 33 tes terhadap binary hasil kompilasi
 
 # Aplikasi
 cd web && npm ci
@@ -1001,7 +1026,7 @@ Review dan perbaikannya dikerjakan agen AI atas permintaan maintainer, berawal
 dari laporan bug bounty Superteam Earn; setiap pull request dibuka manual oleh
 maintainer. Ini bukan audit pihak ketiga.
 
-- 32 tes terhadap binary program hasil kompilasi
+- 33 tes terhadap binary program hasil kompilasi
 - 41 dari 41 pemeriksaan siklus dan serangan di validator lokal
 - skenario griefing pre-funding direproduksi; mitigasi HMAC-SHA-256 berkunci terbukti bertahan
 - binary di mainnet dibandingkan byte per byte dengan build dari source ini
