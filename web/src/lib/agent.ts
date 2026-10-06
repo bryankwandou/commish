@@ -36,9 +36,10 @@ export async function rpc<T>(method: string, params: unknown[]): Promise<T> {
 
 export const rpcDown = () => err(503, "rpc_unavailable", "Solana RPC is unavailable or timed out. Retry shortly.");
 
+/** Whether `a` is an account owned by the Commish program (lamports alone do not count). */
 export async function accountExists(a: string): Promise<boolean> {
-  const r = await rpc<{ value: unknown | null }>("getAccountInfo", [a, { encoding: "base64", commitment: "confirmed", dataSlice: { offset: 0, length: 0 } }]);
-  return r.value !== null;
+  const r = await rpc<{ value: { owner: string } | null }>("getAccountInfo", [a, { encoding: "base64", commitment: "confirmed", dataSlice: { offset: 0, length: 0 } }]);
+  return r.value?.owner === PROGRAM_ID;
 }
 
 /**

@@ -1,8 +1,11 @@
 import { SITE_URL, explorerAddress, explorerTx, PROGRAM_ADDRESS } from "@/lib/config";
 import { USDC_MINT } from "@/lib/commish/program";
+import { after } from "next/server";
+import { recordSale, sweepDue } from "@/lib/relayer";
 import { PRICE, ROUTER_BPS, RpcError, accountExists, commissionPda, wasRecorded, rpcDown, corsHeaders, err, getTx, hex, json, limited, loadDemoCampaign, parseRef, verifyPayment } from "@/lib/agent";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 const BASE58 = /^[1-9A-HJ-NP-Za-km-z]{64,90}$/;
 const used = new Map<string, { t: number; body: unknown }>();
@@ -57,19 +60,25 @@ export async function GET(req: Request) {
     if (!v.ok) return err(402, "payment_invalid", v.reason);
     const now = Date.now();
     const { hash, pda } = await commissionPda(campaign.address, sig);
+    // Cached per payment AND ref: a ref-less call made first by someone who saw
+    // the signature must not stand in for the payer's own call with its ref.
+    const key = `${sig}|${ref ?? ""}`;
+    const prior = used.get(key);
+    if (prior) return json(prior.body);
 
-    // Durable replay guard: the commission PDA's own history survives restarts.
+    let recordTx: string | null = null;
     if (ref) {
-      if (await accountExists(pda)) {
-        const prior = used.get(sig);
-        if (prior) return json(prior.body);
-      } else if (await wasRecorded(pda)) {
-        return err(402, "payment_already_used", "This payment was already redeemed and its commission is closed.");
+      if (!(await accountExists(pda))) {
+        // Durable replay guard: a closed commission still has its record_sale on chain.
+        if (await wasRecorded(pda)) return err(402, "payment_already_used", "This payment was already redeemed and its commission is closed.");
+        try {
+          recordTx = await recordSale(campaign, hash, v.amount, ref);
+        } catch {
+          // A concurrent retry may have recorded it; the account check below decides.
+        }
+        if (!(await accountExists(pda))) return err(503, "record_pending", "Payment verified, but the reservation did not confirm yet. Retry the same request.");
       }
     }
-    // Fast path / idempotent replay (no-ref payments, or recorded-but-not-yet-visible, or restart with live account).
-    const prior = used.get(sig);
-    if (prior) return json(prior.body);
 
     const echo = ref ?? null;
     const timestamp = new Date().toISOString();
@@ -82,7 +91,8 @@ export async function GET(req: Request) {
         orderHash: hex(hash),
         commission: ref ? pda : null,
         releaseAt: ref ? new Date((base + Number(campaign.holdSeconds)) * 1000).toISOString() : null,
-        note: ref ? "Recorded by the relayer; the commission account appears shortly after." : "No ref, so no commission.",
+        note: ref ? "The router's cut is reserved on chain until releaseAt; then anyone can release it." : "No ref, so no commission.",
+        recordTx: recordTx ? explorerTx(recordTx) : null,
         explorer: {
           payment: explorerTx(sig),
           commission: ref ? explorerAddress(pda) : null,
@@ -91,7 +101,8 @@ export async function GET(req: Request) {
         },
       },
     };
-    used.set(sig, { t: now, body });
+    used.set(key, { t: now, body });
+    after(() => sweepDue(campaign).catch(() => {}));
     if (used.size > 5000) for (const [k, e] of used) if (now - e.t > 3_600_000) used.delete(k);
     return json(body);
   } catch (e) {
