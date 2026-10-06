@@ -10,6 +10,8 @@ export const maxDuration = 60;
 
 const BASE58 = /^[1-9A-HJ-NP-Za-km-z]{64,90}$/;
 const used = new Map<string, { t: number; body: unknown }>();
+// One payment buys data for one market. Per instance only, like `used`.
+const marketOf = new Map<string, string>();
 
 export function OPTIONS() {
   return new Response(null, { status: 204, headers: corsHeaders() });
@@ -89,6 +91,8 @@ export async function GET(req: Request) {
 
     let panta: Awaited<ReturnType<typeof marketData>> | null = null;
     if (market) {
+      const served = marketOf.get(sig);
+      if (served && served !== market) return err(409, "payment_already_used", `This payment already bought data for "${served}". Pay again for another market.`);
       // Payment is verified and recorded; failures are not cached, so retrying the same request is safe.
       try {
         panta = await marketData(market);
@@ -120,8 +124,10 @@ export async function GET(req: Request) {
       },
     };
     used.set(key, { t: now, body });
+    if (market) marketOf.set(sig, market);
     after(() => sweepDue(campaign).catch(() => {}));
     if (used.size > 5000) for (const [k, e] of used) if (now - e.t > 3_600_000) used.delete(k);
+    if (marketOf.size > 5000) marketOf.clear();
     return json(body);
   } catch (e) {
     if (e instanceof RpcError) return rpcDown();
