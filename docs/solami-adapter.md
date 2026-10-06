@@ -13,7 +13,7 @@ transactions (`record_sale`, `release`) get sent.
 | Piece | Where | What it does |
 |---|---|---|
 | RPC | `web/src/lib/solami.ts` `rpcUrl()`, used by `relayer.ts`, `agent.ts`, `chain.ts`, `api/rpc/route.ts` | One helper picks the endpoint: `SOLAMI_RPC_URL`, else derived from `SOLAMI_API_KEY`, else `RPC_URL`, else the public default. |
-| Beam | `solami.ts` `beamTipIx()`, called from `relayer.ts` `send()` | When `SOLAMI_API_KEY` is set, a tip transfer is appended to `record_sale` and `release` transactions before signing. Sent through the same `sendRawTransaction`. |
+| Beam | `solami.ts` `beamTipIx()`, called from `relayer.ts` `send()` | When `SOLAMI_API_KEY` is set and `SOLAMI_BEAM=1`, a tip transfer is appended to `record_sale` and `release` transactions before signing. Sent through the same `sendRawTransaction`. |
 | Webhook receiver | `web/src/app/api/solami/webhook/route.ts` | Verifies `X-Webhook-Signature`, and when the delivery mentions the vault and the USDC mint, runs `sweepDue` via `after()`. |
 | Webhook registration | `web/scripts/solami-webhook.mts` | Dry run by default; prints the `POST /webhooks/create` body for vault `HfYrkQ8JUHY2EsJfwqYxXsfanJncQrysCRezhDyB6Jvo`. `--apply` sends it. |
 
@@ -42,7 +42,7 @@ per-endpoint markdown) and `llms.txt`.
 | Variable | Needed for | Notes |
 |---|---|---|
 | `SOLAMI_RPC_URL` | RPC | Full URL including key. Wins over everything. |
-| `SOLAMI_API_KEY` | RPC (derived) and Beam | Turns Beam on. |
+| `SOLAMI_API_KEY` | RPC (derived) and Beam | Required for Beam; Beam itself needs `SOLAMI_BEAM=1`. |
 | `SOLAMI_BEAM_TIP_LAMPORTS` | Beam | Default 100000. Below 100000 disables the tip. |
 | `SOLAMI_BEAM` | Beam | `1` turns the tip on. Off by default, because every tip is SOL from the relayer or keeper wallet. |
 | `SOLAMI_WEBHOOK_SECRET` | Webhook receiver | The `whsec_...` value. Unset means the route returns 503. |
