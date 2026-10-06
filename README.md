@@ -1,3 +1,7 @@
+<p align="center">
+  <a href="https://getcommish.vercel.app/en/demo"><img src="docs/images/banner-x402.png" alt="Commish: hold the cut until the call is final" width="100%"></a>
+</p>
+
 # Commish: USDC Holdback for x402 Agent Payments
 
 > **Agents pay tools per call over HTTP 402. Commish holds the router's cut on Solana until the paid call can no longer be refunded, then anyone can release it, and it can only go to the router.**
@@ -12,10 +16,7 @@
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Colosseum](https://img.shields.io/badge/Colosseum-Crypto%20World's%20Fair%202026-FF6B00)](https://arena.colosseum.org/projects/explore/commish)
 
-<p align="center">
-  <a href="https://getcommish.vercel.app/en/demo"><img src="web/public/demo/poster.jpg" alt="Watch the demo: one full x402 cycle on Solana mainnet" width="100%"></a>
-  <br><sub>▶ <a href="https://getcommish.vercel.app/en/demo">Watch the 2:13 demo</a>: one full cycle recorded on Solana mainnet, 6 Oct 2026. Nothing simulated.</sub>
-</p>
+<p align="center"><sub>▶ <a href="https://getcommish.vercel.app/en/demo"><b>Watch the 2:13 demo</b></a>: one full cycle recorded on Solana mainnet, 6 Oct 2026. Nothing simulated.</sub></p>
 
 ---
 
