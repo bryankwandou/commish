@@ -65,6 +65,20 @@ Traction, stated plainly: every payment so far comes from the founder's own test
 - **Solami RPC:** every server-side chain read (`web/src/lib/solami.ts`).
 - **Web:** Next.js on Vercel: the 402 endpoint, relayer routes and live ledger.
 
+## Hackathon tracks and sponsors
+
+Submitted to the Colosseum Crypto World's Fair main track ([project page](https://arena.colosseum.org/projects/explore/commish)) and to these Superteam Earn side tracks. Same product in every entry.
+
+| Track | What it uses in Commish | Where to look |
+|---|---|---|
+| **Panta API** | Panta prediction-market data is the first paid tool behind the 402 endpoint. `GET /markets/` (text search) and `GET /markets/{id}/` with `X-Api-Key`, server-side only. If Panta fails after payment, the route returns 502 and the agent retries with the same signature; it is never charged twice. | [`web/src/lib/panta.ts`](web/src/lib/panta.ts) · [`docs/panta-adapter.md`](docs/panta-adapter.md) · try `GET /api/agent/call?market=bitcoin` |
+| **Solami** | Solami RPC is the data path for every server-side read: verifying each agent's USDC payment before `record_sale`, the campaign and vault, the [live ledger](https://getcommish.vercel.app/en/live) and the release sweep. Rate-limited calls back off and retry. A webhook receiver (HMAC-checked) and Beam tips are built behind flags. | [`web/src/lib/solami.ts`](web/src/lib/solami.ts) · [`web/src/app/api/solami/webhook/route.ts`](web/src/app/api/solami/webhook/route.ts) · [Run it on your own Solami key](#run-it-on-your-own-solami-key) |
+| **CertiK** (audit credits) | The program custodies USDC for third parties and is live on mainnet; it has had an internal review only. Scope we want audited: `program/src/lib.rs` (542 lines, six instructions). | [Internal Security Assurance](#internal-security-assurance) · [SECURITY.md](SECURITY.md) |
+| **Adevar Labs** (pre-audit) | Same scope. Known areas to review: trusted relayer (bounded by vault balance), re-recording after close (guarded off-chain), single-key upgrade authority. | [`docs/INTERNAL_SECURITY_AUDIT.md`](docs/INTERNAL_SECURITY_AUDIT.md) · [`docs/threat-model.md`](docs/threat-model.md) |
+| **AkcaVPN** (credits) | Solo founder working remotely from Indonesia, operating the relayer and keeper keys that sign mainnet transactions. | [Team](#team) |
+
+Applying to a track is not winning it; none of these sponsors has reviewed or endorsed Commish.
+
 ---
 
 > **About the sections below.** The Commish program was first built for affiliate commissions, and the rest of this README still describes it in those terms. The program did not change for x402; only the roles moved:
@@ -113,7 +127,7 @@ never had: a public, binding promise that the money exists and will be paid on
 a known date. A creator who does not want to wait can sell that promise to a
 buyer for cash today.
 
-The whole protocol is one Pinocchio program of **9,296 bytes**, deployed to
+The whole protocol is one Pinocchio program with a **9,272-byte** binary, deployed to
 Solana mainnet for **0.04901 SOL**.
 
 ---
@@ -325,7 +339,7 @@ Mainnet rent is `(bytes + 128) × 5,080` lamports.
 | **Total held by the deploy** | | **0.04893564** |
 
 The first working build was 25,664 bytes (about 0.13 SOL to deploy). It shrank
-to 9,296 bytes without removing a feature or a check:
+to 9,296 bytes, and to 9,272 bytes in the 5 Oct 2026 upgrade, without removing a feature or a check:
 
 - `core` rebuilt with `panic_immediate_abort`, `opt-level = 3`, fat LTO.
 - Zero-copy `#[repr(C)]` records read in place.
@@ -634,17 +648,19 @@ of the deployed product.
 
 | When | Milestone |
 | --- | --- |
-| Sep 2026 | Program on mainnet, app live in four languages |
-| Oct 2026 | First live campaign with a real shop; Colosseum submission |
-| Q4 2026 | Shopify and WooCommerce attestor plugins; upgrade authority to a multisig |
-| Q1 2027 | Ten pilots with Solana apps that pay creators |
-| 2027 | Secondary market for pending commissions |
+| Sep 2026 | Program on mainnet (first built for affiliate commissions) |
+| Oct 2026 | x402 holdback live: public 402 endpoint, Panta as the first paid tool, Solami RPC, full cycle on mainnet; Colosseum submission |
+| Q4 2026 | Third-party audit; upgrade authority to a Squads multisig; relayer and keeper running 24/7 |
+| Q1 2027 | More paid tools behind the endpoint; an SDK so any x402 seller can add a router cut; first outside agents |
+| 2027 | Open relayer set; market for pending router claims |
+
+No token is planned.
 
 ---
 
 ## Team
 
-**Bryan** ([@bryankwandou](https://github.com/bryankwandou)), founder.
+**Vincentius Bryan Kwandou** (X [@nayrbryangaming](https://x.com/nayrbryangaming), GitHub [@bryankwandou](https://github.com/bryankwandou)), founder and sole developer, working remotely from Indonesia.
 Informatics student in Makassar, Indonesia, and lead of the Superteam campus
 club. A working creator since 2022 (Objkt, Drip, Shutterstock, Upwork). Built
 the program, the app and the tests.
@@ -653,13 +669,14 @@ the program, the app and the tests.
 
 ## Media and Credits
 
-- **Launch video** (23 s): [`brag-output/brag.mp4`](brag-output/brag.mp4), made from the running app.
+- **Demo video** (2:13, x402 cycle on mainnet, 6 Oct 2026): [getcommish.vercel.app/en/demo](https://getcommish.vercel.app/en/demo).
+- **Launch video** (23 s, affiliate version): [`brag-output/brag.mp4`](brag-output/brag.mp4), made from the running app.
 - **Product walkthrough**: [`docs/video/commish-walkthrough.mp4`](docs/video/commish-walkthrough.mp4).
 - **Pitch deck** (12 slides): [`pitch/commish-pitch.pdf`](pitch/commish-pitch.pdf).
 
-Music: "Happy Beats / Business Moves" Vol. 10 and Vol. 12 by Sascha Ende
+Music: "Happy Beats / Business Moves" Vol. 1, Vol. 10 and Vol. 12 by Sascha Ende
 ([ende.app](https://ende.app/en)), CC BY 4.0. Sound effects by
-[Kenney](https://kenney.nl/), CC0. Geist fonts by Vercel, SIL Open Font License.
+[Kenney](https://kenney.nl/), CC0. Demo voiceover: synthetic voice (Microsoft Edge neural TTS, en-US Andrew). Geist fonts by Vercel, SIL Open Font License.
 
 ---
 
@@ -725,7 +742,7 @@ yang belum pernah mereka punya: janji publik dan mengikat bahwa uangnya ada dan
 akan dibayar pada tanggal yang jelas. Kreator yang tidak mau menunggu bisa
 menjual janji itu ke pembeli dan menerima uang hari ini.
 
-Seluruh protokol adalah satu program Pinocchio berukuran **9.296 byte**,
+Seluruh protokol adalah satu program Pinocchio dengan binary **9.272 byte**,
 di-deploy ke Solana mainnet dengan biaya **0,04901 SOL**.
 
 ---
@@ -872,7 +889,7 @@ lamport. Data program 9.341 byte (0,04810252 SOL) ditambah akun program 36
 byte (0,00083312 SOL), total **0,04893564 SOL**.
 
 Build pertama berukuran 25.664 byte (sekitar 0,13 SOL). Ukurannya turun ke
-9.296 byte tanpa membuang fitur atau pemeriksaan:
+9.296 byte, lalu 9.272 byte pada upgrade 5 Okt 2026, tanpa membuang fitur atau pemeriksaan:
 
 - `core` di-build ulang dengan `panic_immediate_abort`, `opt-level = 3`, LTO penuh.
 - Record `#[repr(C)]` dibaca langsung tanpa disalin.
@@ -891,7 +908,7 @@ sudah diuji, bukan diasumsikan.
 | 0 | `create_campaign` | brand | membuat kampanye dan vault | 15.109 |
 | 1 | `record_sale` | attestor, payer | mencatat penjualan dan mencadangkan komisi | 1.783 |
 | 2 | `cancel` | attestor | membatalkan komisi untuk pesanan yang di-refund | 376 |
-| 3 | `release` | tidak ada | membayar komisi yang jatuh tempo | 1.666 |
+| 3 | `release` | tidak ada | membayar komisi yang jatuh tempo (1% ke treasury) | 2.947 |
 | 4 | `withdraw` | brand | menarik anggaran yang tidak dicadangkan | 1.450 |
 | 5 | `sell` | penerima, pembeli | menjual komisi yang tertunda | 1.622 |
 
@@ -993,7 +1010,7 @@ Siklus penuh di validator lokal ada di bagian [Quick Start](#quick-start).
 
 ## Variabel Lingkungan
 
-Tidak ada yang rahasia. Aplikasi tidak menyimpan private key.
+Aplikasi tidak menyimpan private key. API key (Solami, Panta) bersifat rahasia; daftar lengkap variabel ada di bagian [Environment Variables](#environment-variables).
 
 | Variabel | Kegunaan | Default |
 | --- | --- | --- |
@@ -1084,17 +1101,19 @@ berisi iterasi pertama proyek ini dan sudah digantikan oleh `program/` dan
 
 | Kapan | Target |
 | --- | --- |
-| Sep 2026 | Program di mainnet, aplikasi live dalam empat bahasa |
-| Okt 2026 | Kampanye live pertama dengan toko nyata; submisi Colosseum |
-| Q4 2026 | Plugin attestor untuk Shopify dan WooCommerce; upgrade authority ke multisig |
-| Q1 2027 | Sepuluh pilot dengan aplikasi Solana yang membayar kreator |
-| 2027 | Pasar sekunder untuk komisi tertunda |
+| Sep 2026 | Program di mainnet (awalnya untuk komisi afiliasi) |
+| Okt 2026 | Holdback x402 live: endpoint 402 publik, Panta sebagai tool berbayar pertama, Solami RPC, satu siklus penuh di mainnet; submisi Colosseum |
+| Q4 2026 | Audit pihak ketiga; upgrade authority ke Squads multisig; relayer dan keeper jalan 24/7 |
+| Q1 2027 | Lebih banyak tool berbayar; SDK agar penjual x402 mana pun bisa memberi bagian ke router; agen luar pertama |
+| 2027 | Relayer terbuka; pasar untuk klaim router yang tertunda |
+
+Tidak ada rencana token.
 
 ---
 
 ## Tim
 
-**Bryan** ([@bryankwandou](https://github.com/bryankwandou)), founder.
+**Vincentius Bryan Kwandou** (X [@nayrbryangaming](https://x.com/nayrbryangaming), GitHub [@bryankwandou](https://github.com/bryankwandou)), founder dan satu-satunya developer, bekerja remote dari Indonesia.
 Mahasiswa informatika di Makassar dan ketua klub kampus Superteam. Kreator
 aktif sejak 2022 (Objkt, Drip, Shutterstock, Upwork). Membangun program,
 aplikasi dan tesnya sendiri.
