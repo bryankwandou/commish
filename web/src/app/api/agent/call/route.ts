@@ -1,6 +1,7 @@
 import { SITE_URL, explorerAddress, explorerTx, PROGRAM_ADDRESS } from "@/lib/config";
 import { USDC_MINT } from "@/lib/commish/program";
 import { after } from "next/server";
+import { PantaError, marketData, pantaConfigured } from "@/lib/panta";
 import { recordSale, sweepDue } from "@/lib/relayer";
 import { PRICE, ROUTER_BPS, RpcError, accountExists, commissionPda, wasRecorded, rpcDown, corsHeaders, err, getTx, hex, json, limited, loadDemoCampaign, parseRef, verifyPayment } from "@/lib/agent";
 
@@ -20,6 +21,10 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const ref = parseRef(url.searchParams.get("ref"));
     if (ref === "bad") return err(400, "invalid_ref", "ref must be a base58 Solana public key.");
+
+    const marketRaw = url.searchParams.get("market")?.trim() || null;
+    if (marketRaw && !/^[\w .:,'?-]{1,80}$/.test(marketRaw)) return err(400, "invalid_market", "market must be a Panta market address or a short text query (max 80 chars).");
+    const market = marketRaw && pantaConfigured() ? marketRaw : null;
 
     let campaign;
     try {
@@ -41,8 +46,10 @@ export async function GET(req: Request) {
               asset: USDC_MINT,
               payTo: campaign.vault,
               maxAmountRequired: PRICE.toString(),
-              resource: `${SITE_URL}/api/agent/call${ref ? `?ref=${ref}` : ""}`,
-              description: "Echo call. 0.05 USDC; the router cut is held until the refund window closes.",
+              resource: `${SITE_URL}/api/agent/call${ref || market ? `?${[ref && `ref=${ref}`, market && `market=${encodeURIComponent(market)}`].filter(Boolean).join("&")}` : ""}`,
+              description: market
+                ? `Panta prediction-market data for "${market}": market details and live YES/NO prices. 0.05 USDC; the router cut is held until the refund window closes.`
+                : "Echo call. 0.05 USDC; the router cut is held until the refund window closes. Add ?market=<Panta market id or query> for Panta prediction-market data.",
               mimeType: "application/json",
               maxTimeoutSeconds: 120,
               extra: { memo: ref ? `commish:${ref}` : null, campaign: campaign.address, holdSeconds: Number(campaign.holdSeconds), routerBps: ROUTER_BPS },
@@ -62,7 +69,7 @@ export async function GET(req: Request) {
     const { hash, pda } = await commissionPda(campaign.address, sig);
     // Cached per payment AND ref: a ref-less call made first by someone who saw
     // the signature must not stand in for the payer's own call with its ref.
-    const key = `${sig}|${ref ?? ""}`;
+    const key = `${sig}|${ref ?? ""}|${market ?? ""}`;
     const prior = used.get(key);
     if (prior) return json(prior.body);
 
@@ -80,12 +87,23 @@ export async function GET(req: Request) {
       }
     }
 
+    let panta: Awaited<ReturnType<typeof marketData>> | null = null;
+    if (market) {
+      // Payment is verified and recorded; failures are not cached, so retrying the same request is safe.
+      try {
+        panta = await marketData(market);
+      } catch (e) {
+        if (e instanceof PantaError && e.code === "market_not_found") return err(404, "market_not_found", "Payment verified, but Panta has no matching market. Retry with another market value and the same X-Payment.");
+        return err(502, "panta_unavailable", "Payment verified, but the Panta API failed. Retry the same request.");
+      }
+    }
+
     const echo = ref ?? null;
     const timestamp = new Date().toISOString();
     const sha256 = hex(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`${echo ?? ""}|${timestamp}`))));
     const base = v.blockTime ?? Math.floor(now / 1000);
     const body = {
-      result: { echo, timestamp, sha256 },
+      result: panta ? { source: "panta", market: panta.market, matched: panta.matched ?? null, timestamp } : { echo, timestamp, sha256 },
       receipt: {
         payment: sig,
         orderHash: hex(hash),

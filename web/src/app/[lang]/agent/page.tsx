@@ -67,6 +67,12 @@ curl "${SITE_URL}/api/agent/call?ref=${ref}" \\
         <h2 id="flow" className="mt-14 scroll-mt-24 text-xl font-semibold">The 402 flow</h2>
         <pre className="mt-4 overflow-x-auto rounded-xl border border-line bg-surface-2 p-4 font-mono text-[12.5px] leading-relaxed">{curl}</pre>
 
+        <h2 className="mt-14 text-xl font-semibold">Paid tool: Panta market data</h2>
+        <p className="mt-3 text-sm text-muted">
+          Add <code className="font-mono">?market=&lt;Panta market address or search text&gt;</code> and the paid call returns that prediction market from the Panta API: title, phase, volume and live YES/NO prices. Payment, holdback and receipt work exactly as above; Panta is the tool being sold. Without <code className="font-mono">market</code> (or while the Panta key is unset) you get the echo result.
+        </p>
+        <pre className="mt-4 overflow-x-auto rounded-xl border border-line bg-surface-2 p-4 font-mono text-[12.5px] leading-relaxed">{`curl "${SITE_URL}/api/agent/call?ref=${ref}&market=bitcoin" -H "X-Payment: <TX_SIGNATURE>"`}</pre>
+
         <p className="mt-8 text-sm text-muted">
           <Link className="underline" href={`/${lang}/live`}>Watch live holdbacks</Link> · <a className="underline" href={`${REPO_URL}/blob/main/README-JUDGES.md`} target="_blank" rel="noreferrer">README-JUDGES on GitHub</a> (github.com/bryankwandou/commish)
         </p>
