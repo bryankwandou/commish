@@ -311,7 +311,7 @@ to 9,296 bytes without removing a feature or a check:
 - Checked arithmetic where an input can overflow; invariant-based arithmetic
   only where the invariant is enforced on the way in.
 
-The 32 tests run against this exact build, so the size work is tested, not
+The 33 tests run against this exact build, so the size work is tested, not
 assumed.
 
 ### Accounts
@@ -448,7 +448,7 @@ Program (needs the Solana CLI with `cargo build-sbf`):
 cd program
 npm ci
 npm run build   # target/deploy/commish.so, 9,272 bytes
-npm test        # 32 tests against the compiled binary
+npm test        # 33 tests against the compiled binary
 ```
 
 App:
@@ -473,13 +473,41 @@ cd web && RPC_URL=http://127.0.0.1:8899 node --import tsx scripts/lifecycle.mts 
 
 ## Environment Variables
 
-None of these are secrets. The app holds no private keys.
+The app holds no private keys. The API keys below are secrets: keep them in
+`web/.env.local` or your host's env settings, never in the repo.
 
 | Variable | Used for | Default |
 | --- | --- | --- |
 | `RPC_URL` | server-side reads and the RPC proxy | `https://api.mainnet-beta.solana.com` |
 | `NEXT_PUBLIC_RPC_URL` | the browser's RPC endpoint | the app's own `/api/rpc` proxy |
 | `NEXT_PUBLIC_SITE_URL` | canonical links and share URLs | `https://getcommish.vercel.app` |
+| `SOLAMI_API_KEY` | Solami RPC for every server-side read (secret) | unset: falls back to `RPC_URL` |
+| `SOLAMI_RPC_URL` | full Solami RPC URL, overrides `SOLAMI_API_KEY` (secret) | unset |
+| `SOLAMI_WEBHOOK_SECRET` | HMAC check on `/api/solami/webhook` (secret) | unset: webhook refuses calls |
+| `SOLAMI_BEAM` | `1` adds a Beam tip to our own sends (costs SOL) | off |
+| `SOLAMI_BEAM_TIP_LAMPORTS` | Beam tip per transaction | `100000` |
+| `PANTA_API_KEY` | Panta market data sold by `/api/agent/call` (secret) | unset |
+| `PANTA_API_URL` | Panta API base URL | Panta's public API |
+| `COMMISH_DEMO_CAMPAIGN` | campaign the 402 endpoint and `/live` use; mainnet: `GvuUZi4ggeH3FC3AC7RkApQQHBRizwKW5XTRtRWStMmR` | unset: both are off |
+| `COMMISH_FOUNDER_PUBKEYS` | comma-separated wallets `/live` labels as SOAK (founder-run) | empty |
+
+### Run it on your own Solami key
+
+1. Get a key at [solami.dev](https://solami.dev).
+2. Put it in `web/.env.local`:
+
+   ```bash
+   SOLAMI_API_KEY=your-key
+   COMMISH_DEMO_CAMPAIGN=GvuUZi4ggeH3FC3AC7RkApQQHBRizwKW5XTRtRWStMmR
+   PANTA_API_KEY=your-panta-key   # optional: only the paid call needs it
+   ```
+
+3. `cd web && npm ci && npm run dev`, then open
+   <http://localhost:3000/en/live>. The live ledger, the payment check behind
+   `/api/agent/call` and the release sweep now read mainnet through Solami
+   (`web/src/lib/solami.ts`, `rpcUrl()`). Requests that hit Solami's rate limit
+   back off and retry (`web/src/lib/agent.ts`).
+4. Check it: `curl http://localhost:3000/api/agent/health` returns `"rpcOk":true`.
 
 ---
 
@@ -518,7 +546,7 @@ adversarial behaviour. The review and fixes were done by AI agents working
 from the maintainer's requests, prompted by a Superteam Earn bug-bounty report;
 the maintainer opened every pull request by hand. This is not a third-party audit.
 
-- 32 tests against the compiled program binary
+- 33 tests against the compiled program binary
 - 41 of 41 lifecycle and attack checks on a local validator
 - the pre-funding griefing scenario reproduced; the keyed HMAC-SHA-256
   mitigation shown to hold

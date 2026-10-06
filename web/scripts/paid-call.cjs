@@ -23,7 +23,9 @@ const ata = (owner) => PublicKey.findProgramAddressSync([owner.toBuffer(), TOKEN
   const relayer = role("RELAYER").publicKey;
   const q = `ref=${router.toBase58()}${market ? `&market=${encodeURIComponent(market)}` : ""}`;
 
-  const terms = await (await fetch(`${SITE}/api/agent/call?${q}`)).json();
+  const first = await fetch(`${SITE}/api/agent/call?${q}`);
+  console.log("HTTP", first.status, first.statusText || "Payment Required", `GET ${SITE}/api/agent/call`);
+  const terms = await first.json();
   const t = terms.accepts[0];
   const vault = new PublicKey(t.payTo);
   const amount = BigInt(t.maxAmountRequired);
