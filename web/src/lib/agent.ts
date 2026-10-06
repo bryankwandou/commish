@@ -1,5 +1,6 @@
 import "server-only";
 import { rpcUrl } from "./solami";
+import { rpcFastUrl } from "./rpcfast";
 import { address, type Address } from "@solana/kit";
 import {
   PROGRAM_ID,
@@ -18,8 +19,8 @@ const RPC = rpcUrl();
 export class RpcError extends Error {}
 
 // Solami's free tier allows 10 requests/s; the live page bursts past that.
-// A rate-limited call waits and retries, then falls back to RPC_URL.
-const FALLBACK = process.env.RPC_URL && process.env.RPC_URL !== RPC ? process.env.RPC_URL : null;
+// A rate-limited or failed call waits and retries, then fails over to RPC Fast, then RPC_URL.
+export const FALLBACKS = [rpcFastUrl(), process.env.RPC_URL || null].filter((u, i, a): u is string => !!u && u !== RPC && a.indexOf(u) === i);
 
 async function rpcOnce<T>(url: string, method: string, params: unknown[]): Promise<{ limited: boolean; result?: T; error?: string }> {
   const r = await fetch(url, {
@@ -36,7 +37,7 @@ async function rpcOnce<T>(url: string, method: string, params: unknown[]): Promi
 }
 
 export async function rpc<T>(method: string, params: unknown[]): Promise<T> {
-  const tries: [string, number][] = [[RPC, 0], [RPC, 400], [RPC, 1200], ...(FALLBACK ? ([[FALLBACK, 0]] as [string, number][]) : [])];
+  const tries: [string, number][] = [[RPC, 0], [RPC, 400], [RPC, 1200], ...FALLBACKS.map((u): [string, number] => [u, 0])];
   let last = "request failed";
   for (const [url, wait] of tries) {
     if (wait) await new Promise((s) => setTimeout(s, wait));
@@ -172,7 +173,7 @@ export const hex = (b: Uint8Array) => Array.from(b, (x) => x.toString(16).padSta
 /** order_hash = sha256("commish:x402:" + campaign + ":" + payment_signature) */
 export async function commissionPda(campaign: Address, signature: string) {
   const pre = new TextEncoder().encode(`commish:x402:${campaign}:${signature}`);
-  const hash = new Uint8Array(await crypto.subtle.digest("SHA-256", pre));
+  const hash = new Uint8Array(await crypto.subtle.digest("SHA-256", new Uint8Array(pre)));
   return { hash, pda: (await findCommission(campaign, hash)).address };
 }
 

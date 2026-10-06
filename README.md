@@ -73,6 +73,7 @@ Submitted to the Colosseum Crypto World's Fair main track ([project page](https:
 |---|---|---|
 | **Panta API** | Panta prediction-market data is the first paid tool behind the 402 endpoint. `GET /markets/` (text search) and `GET /markets/{id}/` with `X-Api-Key`, server-side only. If Panta fails after payment, the route returns 502 and the agent retries with the same signature; it is never charged twice. | [`web/src/lib/panta.ts`](web/src/lib/panta.ts) · [`docs/panta-adapter.md`](docs/panta-adapter.md) · try `GET /api/agent/call?market=bitcoin` |
 | **Solami** | Solami RPC is the data path for every server-side read: verifying each agent's USDC payment before `record_sale`, the campaign and vault, the [live ledger](https://getcommish.vercel.app/en/live) and the release sweep. Rate-limited calls back off and retry. A webhook receiver (HMAC-checked) and Beam tips are built behind flags. | [`web/src/lib/solami.ts`](web/src/lib/solami.ts) · [`web/src/app/api/solami/webhook/route.ts`](web/src/app/api/solami/webhook/route.ts) · [Run it on your own Solami key](#run-it-on-your-own-solami-key) |
+| **RPC Fast** | Failover mainnet RPC. When a Solami read is rate-limited or fails after two retries, `rpc()` sends it to RPC Fast (`solana-rpc.rpcfast.com`, Frankfurt), then to `RPC_URL`. `/api/agent/health` probes it on every call and reports `fallbackRpcOk`. | [`web/src/lib/rpcfast.ts`](web/src/lib/rpcfast.ts) · [`web/src/lib/agent.ts`](web/src/lib/agent.ts) `rpc()` · [health](https://getcommish.vercel.app/api/agent/health) |
 | **CertiK** (audit credits) | The program custodies USDC for third parties and is live on mainnet; it has had an internal review only. Scope we want audited: `program/src/lib.rs` (542 lines, six instructions). | [Internal Security Assurance](#internal-security-assurance) · [SECURITY.md](SECURITY.md) |
 | **Adevar Labs** (pre-audit) | Same scope. Known areas to review: trusted relayer (bounded by vault balance), re-recording after close (guarded off-chain), single-key upgrade authority. | [`docs/INTERNAL_SECURITY_AUDIT.md`](docs/INTERNAL_SECURITY_AUDIT.md) · [`docs/threat-model.md`](docs/threat-model.md) |
 | **AkcaVPN** (credits) | Solo founder working remotely from Indonesia, operating the relayer and keeper keys that sign mainnet transactions. | [Team](#team) |
@@ -526,6 +527,8 @@ The app holds no private keys. The API keys below are secrets: keep them in
 | `SOLAMI_WEBHOOK_SECRET` | HMAC check on `/api/solami/webhook` (secret) | unset: webhook refuses calls |
 | `SOLAMI_BEAM` | `1` adds a Beam tip to our own sends (costs SOL) | off |
 | `SOLAMI_BEAM_TIP_LAMPORTS` | Beam tip per transaction | `100000` |
+| `RPCFAST_API_KEY` | [RPC Fast](https://rpcfast.com) failover RPC: reads move here when Solami is rate-limited or down (secret) | unset: no RPC Fast failover |
+| `RPCFAST_RPC_URL` | full RPC Fast URL, overrides `RPCFAST_API_KEY` (secret) | unset |
 | `PANTA_API_KEY` | Panta market data sold by `/api/agent/call` (secret) | unset |
 | `PANTA_API_URL` | Panta API base URL | Panta's public API |
 | `COMMISH_DEMO_CAMPAIGN` | campaign the 402 endpoint and `/live` use; mainnet: `GvuUZi4ggeH3FC3AC7RkApQQHBRizwKW5XTRtRWStMmR` | unset: both are off |

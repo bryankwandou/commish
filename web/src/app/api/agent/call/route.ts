@@ -104,7 +104,7 @@ export async function GET(req: Request) {
 
     const echo = ref ?? null;
     const timestamp = new Date().toISOString();
-    const sha256 = hex(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`${echo ?? ""}|${timestamp}`))));
+    const sha256 = hex(new Uint8Array(await crypto.subtle.digest("SHA-256", new Uint8Array(new TextEncoder().encode(`${echo ?? ""}|${timestamp}`)))));
     // blockTime can still be 0 right after confirmation (seen on Solami RPC).
     const base = v.blockTime || Math.floor(now / 1000);
     const body = {
