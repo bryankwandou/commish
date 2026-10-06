@@ -44,7 +44,7 @@ per-endpoint markdown) and `llms.txt`.
 | `SOLAMI_RPC_URL` | RPC | Full URL including key. Wins over everything. |
 | `SOLAMI_API_KEY` | RPC (derived) and Beam | Turns Beam on. |
 | `SOLAMI_BEAM_TIP_LAMPORTS` | Beam | Default 100000. Below 100000 disables the tip. |
-| `SOLAMI_BEAM` | Beam | `0` keeps the Solami RPC but sends no tip. |
+| `SOLAMI_BEAM` | Beam | `1` turns the tip on. Off by default, because every tip is SOL from the relayer or keeper wallet. |
 | `SOLAMI_WEBHOOK_SECRET` | Webhook receiver | The `whsec_...` value. Unset means the route returns 503. |
 | `SOLAMI_SESSION_TOKEN` | Registration script only | Session Bearer token, not an API key. Never set on Vercel. |
 
@@ -61,7 +61,7 @@ Server-only. Do not prefix with `NEXT_PUBLIC_`. The browser still talks to
 ## Cost and risk
 
 - Beam is free to use but each tipped transaction pays at least 0.0001 SOL from
-  the relayer/keeper wallet, on top of the network fee. Set `SOLAMI_BEAM=0` to avoid it.
+  the relayer/keeper wallet, on top of the network fee. Beam is off unless `SOLAMI_BEAM=1`.
 - If the tip list cannot be fetched, the transaction is sent without a tip,
   as before. A tip never changes the program instruction.
 - The webhook route never trusts the body: unsigned or wrongly signed requests get 401.

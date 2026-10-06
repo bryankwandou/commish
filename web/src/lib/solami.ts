@@ -6,9 +6,9 @@ import { SystemProgram, TransactionInstruction, PublicKey } from "@solana/web3.j
  *
  *  - SOLAMI_RPC_URL      full RPC URL incl. key, e.g. https://rpc.solami.dev/sol?api_key=...
  *  - SOLAMI_API_KEY      if set and SOLAMI_RPC_URL is not, the RPC URL is derived from it;
- *                        it also turns on Beam (a tip transfer is added to our own sends)
+ *                        (Beam stays off until SOLAMI_BEAM=1)
  *  - SOLAMI_BEAM_TIP_LAMPORTS  tip per transaction, default 100000 (0.0001 SOL, Beam's minimum)
- *  - SOLAMI_BEAM=0       keep the Solami RPC but skip the tip
+ *  - SOLAMI_BEAM=1       add the Beam tip to our own sends (costs SOL per transaction)
  *
  * Beam over HTTP has no endpoint of its own: a normal sendTransaction to the
  * Solami RPC that carries a tip instruction is routed through Beam
@@ -31,7 +31,8 @@ export function rpcUrl(): string {
 export const solamiRpcActive = () => !!(env("SOLAMI_RPC_URL") || env("SOLAMI_API_KEY"));
 
 /** Beam is on when a Solami key is configured and not switched off. */
-export const beamEnabled = () => !!env("SOLAMI_API_KEY") && env("SOLAMI_BEAM") !== "0";
+// Off unless asked for: every tip is SOL out of the relayer or keeper wallet.
+export const beamEnabled = () => !!env("SOLAMI_API_KEY") && env("SOLAMI_BEAM") === "1";
 
 let tips: string[] | null = null;
 let tipsAt = 0;
