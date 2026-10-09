@@ -147,7 +147,7 @@ const es: Dictionary = {
       title: "Para herramientas",
       points: [
         "Cobra a los agentes por llamada vía HTTP 402, en USDC",
-        "Paga a los routers por tráfico sin confiar en ellos ni pedirles confianza",
+        "Paga a los routers por tráfico: el programa retiene la comisión, no tú ni ellos",
         "Define la comisión y la ventana una vez por campaña",
         "El propio pago financia la bóveda: no hace falta saldo en USDC",
         "Retira lo no reservado cuando quieras",
@@ -207,7 +207,7 @@ const es: Dictionary = {
     ],
   },
   final: {
-    title: "Paga a los routers por tráfico de agentes, sin confianza.",
+    title: "Paga a los routers por tráfico de agentes, con la comisión retenida on-chain.",
     sub: "Llama al endpoint 402 en vivo, o crea una campaña con cualquier wallet de Solana.",
   },
   footer: {

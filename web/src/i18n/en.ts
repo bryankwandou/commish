@@ -123,7 +123,7 @@ const en = {
       title: "For tools",
       points: [
         "Charge agents per call over HTTP 402, in USDC",
-        "Pay routers for traffic without trusting them, or asking them to trust you",
+        "Pay routers for traffic: the program holds the cut, not you or them",
         "Set the cut and the refund window once, per campaign",
         "The payment itself funds the vault: no USDC float needed",
         "Withdraw what isn't reserved whenever you like",
@@ -176,7 +176,7 @@ const en = {
     ],
   },
   final: {
-    title: "Pay routers for agent traffic, without trust.",
+    title: "Pay routers for agent traffic, with the cut held on-chain.",
     sub: "Call the live 402 endpoint, or set up a campaign with any Solana wallet.",
   },
   footer: {

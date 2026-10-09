@@ -147,7 +147,7 @@ const id: Dictionary = {
       title: "Untuk tool",
       points: [
         "Tagih agen per panggilan lewat HTTP 402, dalam USDC",
-        "Bayar router untuk trafik tanpa harus saling percaya",
+        "Bayar router untuk trafik: program yang menahan potongan, bukan Anda atau mereka",
         "Atur potongan dan jendela refund sekali per campaign",
         "Pembayaran itu sendiri mengisi vault: tidak perlu modal USDC",
         "Tarik bagian yang tidak dicadangkan kapan saja",
@@ -207,7 +207,7 @@ const id: Dictionary = {
     ],
   },
   final: {
-    title: "Bayar router untuk trafik agen, tanpa harus percaya.",
+    title: "Bayar router untuk trafik agen, potongannya ditahan on-chain.",
     sub: "Panggil endpoint 402 yang live, atau buat campaign dengan wallet Solana apa saja.",
   },
   footer: {
