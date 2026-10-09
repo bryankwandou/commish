@@ -56,6 +56,17 @@
 | 13:22:54 | Relayer records it; 0.005 USDC held by the program | [`2GXGEqG9…KD5F5`](https://explorer.solana.com/tx/2GXGEqG92tbFqummdYMSePphoGHmemWcWN1F6qfr9Ho5daGJKyHXSsJNNLApkXaeja2YKxeGCUYX7vV7XXFKD5F5) |
 | 13:33:12 | Window closed at 13:32:54; keeper releases 0.00495 USDC to the router | [`5UP1zayt…18sT3`](https://explorer.solana.com/tx/5UP1zaytSZYa8H6p6xFJSd8fccJLjnkeMg37UuUiVPrXyv2Cs5Xks28dtiBUkMxmd5wj73XsSux96Aivis118sT3) |
 
+## Proof: the refund path on mainnet (9 Oct 2026)
+
+| Time (UTC) | Step | Transaction |
+|---|---|---|
+| 14:55:54 | Agent pays 0.05 USDC into the vault | [`2j1px41k…j3ZUS`](https://explorer.solana.com/tx/2j1px41kGNsg7QQvx2pyr9UH75TE4R1Wnfa22MmsTTtzKwccT8fXrZ9w7CY1zr3LftH23y7yBcbU9Tb2FFkj3ZUS) |
+| 14:55:56 | Relayer records it; 0.005 USDC held by the program | [`3P2qbXKx…wvwkr`](https://explorer.solana.com/tx/3P2qbXKx2SfRFN4u922UoVzh2WJmbYqqmZ3nkhX6yPBYkC6jKCYZ2J5q5Unq5bKZQZmPLQydE1bcUdpM7ogwvwkr) |
+| 14:56:14 | Tool refunds the 0.05 USDC from the vault to the agent, memo `commish:refund:<payment>` | [`4b1FAR1L…hKKuG`](https://explorer.solana.com/tx/4b1FAR1LUvMUFdfk6FK75UMnZuDBjQQsTuvh9JdCtA7kCdG6ALvK3MVABwtzEzFUuJ2SGgKNgTjbHJ4vzgvhKKuG) |
+| 14:56:27 | Relayer cancels the commission inside the window; the router gets nothing | [`44iK8DZt…zJp31`](https://explorer.solana.com/tx/44iK8DZtKV1rbbrzYePzmawHufwhrAgp97JcFCAeMYi7K586FL34QCJB3VQEJuSaZr4oi5szqN9qk3CviPwzJp31) |
+
+Before the call, the tool treasury moved 0.05 USDC of its own vault revenue to the test agent ([`3jVVqECK…WVjMp`](https://explorer.solana.com/tx/3jVVqECKpgqv9oiZ9PY1yEXk1AN4seiHrhEHdiCNLHXKBmfK179r4ijYkGmTqZyjDuhzr3w94cpVZVoGUFbWVjMp)). Commission account [`8UmAnRMe…dmDPG`](https://explorer.solana.com/address/8UmAnRMevGUCfb2quHiCDUS9sCT8kaNJDFfeswQmdDPG) is closed and its rent went back to the relayer.
+
 Traction, stated plainly: every payment so far comes from the founder's own test agent. Outside agents: 0.
 
 ## Built with

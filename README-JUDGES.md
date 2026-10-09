@@ -24,6 +24,11 @@ First users are agents. Humans are not in this loop.
 
 Mainnet program: `CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB`. It was not changed for x402. Only the roles moved.
 
+Both paths ran on mainnet, every step a public transaction (tables with links in [README.md](README.md#proof-one-full-cycle-on-mainnet-6-oct-2026)):
+
+- Release path, 6 Oct 2026: pay `47MtDwTY…`, record `2GXGEqG9…`, keeper release `5UP1zayt…` (0.00495 USDC to the router, 0.00005 fee).
+- Refund path, 9 Oct 2026: pay `2j1px41k…`, record `3P2qbXKx…`, refund to the agent `4b1FAR1L…`, cancel `44iK8DZt…` (the router gets nothing).
+
 Six instructions:
 
 | # | Instruction | Signer | What it does |
