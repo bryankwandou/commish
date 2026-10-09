@@ -110,6 +110,16 @@ export async function GET(req: Request) {
     const body = {
       result: panta ? { source: "panta", market: panta.market, matched: panta.matched ?? null, timestamp } : { echo, timestamp, sha256 },
       receipt: {
+        status: ref ? "recorded" : "paid_no_commission",
+        verdict: "payment_verified",
+        network: "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+        asset: USDC_MINT,
+        price: PRICE.toString(),
+        amountPaid: v.amount.toString(),
+        payer: v.feePayer,
+        payTo: campaign.vault,
+        settlementId: sig,
+        retry: "Safe to repeat this request with the same X-Payment: it returns this receipt again and never records or charges twice.",
         payment: sig,
         orderHash: hex(hash),
         commission: ref ? pda : null,

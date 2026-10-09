@@ -22,12 +22,12 @@ const es: Dictionary = {
     sub: "Un agente paga 0,05 USDC a una herramienta por HTTP 402. El router que lo envió gana el 10%, reservado on-chain donde la herramienta no puede gastarlo. Tras una ventana de reembolso de 10 minutos, cualquiera puede liberarlo, y solo puede llegar al router. Los primeros usuarios son agentes. Los humanos no están en este ciclo.",
     ctaBrand: "Prueba el endpoint 402",
     ctaCreator: "Enruto agentes",
-    note: "Sin custodia y de código abierto. Cada regla de esta página la aplica un programa en Solana mainnet.",
+    note: "Sin custodia y de código abierto. Las reglas de custodia y pago las aplica un programa en Solana mainnet; el relayer verifica cada pago antes de registrarlo.",
   },
   flow: {
     title: "Sigue la comisión de un router",
     order: "Tráfico",
-    orderValue: "1.000 llamadas pagadas · 50,00 USDC",
+    orderValue: "Ejemplo: 1.000 llamadas pagadas · 50,00 USDC",
     rate: "Comisión del router al 10%",
     window: "Ventana de reembolso",
     payee: "Beneficiario",
@@ -44,7 +44,7 @@ const es: Dictionary = {
     close: "Dejar cerrar la ventana",
     early: "Cobrar antes",
     reset: "Empezar de nuevo",
-    idle: "Los agentes pagaron 1.000 llamadas a la herramienta a través de un router. Regístralas para reservar su comisión.",
+    idle: "Ejemplo, no tráfico real: los agentes pagaron 1.000 llamadas a la herramienta a través de un router. Regístralas para reservar su comisión.",
     held: "5,00 USDC están reservados en la bóveda de la campaña. La herramienta no puede retirarlos, y una llamada reembolsada dentro de la ventana cancela su parte.",
     paidBuyer: "Pagada al comprador, que compró la comisión antes. El router ya tenía el dinero, y la renta de la cuenta volvió a quien la pagó.",
     paid: "Pagada a la wallet del router, menos la tarifa del 1%. La cuenta de comisión se cerró y devolvió su renta a quien la pagó.",
@@ -110,7 +110,7 @@ const es: Dictionary = {
       },
       {
         t: "Un pago, una comisión",
-        d: "La dirección de la comisión sale de un hash de la firma del pago. Registrar el mismo pago dos veces falla.",
+        d: "La dirección de la comisión sale de un hash de la firma del pago, así que el programa rechaza un segundo registro mientras la comisión está abierta. Después de cerrarse, el relayer revisa el historial on-chain de esa dirección y rechaza el pago.",
       },
       {
         t: "Solo el attestor registra",
@@ -168,7 +168,7 @@ const es: Dictionary = {
   integrate: {
     kicker: "Integración",
     title: "Registrar una llamada pagada",
-    sub: "El relayer firma una instrucción por pago verificado. El hash de la orden es SHA-256 de la campaña y la firma del pago, así que un pago solo puede generar una comisión.",
+    sub: "El relayer firma una instrucción por pago verificado. El hash de la orden es SHA-256 de la campaña y la firma del pago, así que el mismo pago siempre apunta a la misma dirección de comisión.",
     tabs: [
       "TypeScript",
       "Mapa de eventos",

@@ -4,6 +4,7 @@ import { Connection, Keypair, PublicKey, Transaction, TransactionInstruction } f
 import bs58 from "bs58";
 import { commissionsFor } from "./chain";
 import { beamEnabled, beamTipIx, rpcUrl } from "./solami";
+import { rpcFastUrl } from "./rpcfast";
 import {
   COMMISSION_LEN,
   TREASURY,
@@ -21,6 +22,27 @@ import {
  * balance. The keeper side only calls the permissionless `release`.
  */
 const RPC = rpcUrl();
+// Writes fail over like reads: primary first, then RPC Fast, then RPC_URL.
+const WRITE_RPCS = [RPC, rpcFastUrl(), process.env.RPC_URL || null].filter((u, i, a): u is string => !!u && a.indexOf(u) === i);
+
+/**
+ * Runs `fn` against each RPC in turn until one succeeds. A transaction the
+ * program rejected is final and is not retried elsewhere. Retrying after a
+ * timeout is safe: a second record_sale for the same order hash fails because
+ * the commission account exists, and a second release fails because it closed.
+ */
+async function withFailover<T>(fn: (conn: Connection) => Promise<T>): Promise<T> {
+  let last: unknown = new Error("no RPC configured");
+  for (const url of WRITE_RPCS) {
+    try {
+      return await fn(new Connection(url, "confirmed"));
+    } catch (e) {
+      if (e instanceof Error && e.message.startsWith("transaction failed")) throw e;
+      last = e;
+    }
+  }
+  throw last;
+}
 
 function keypair(env: string): Keypair | null {
   const v = process.env[env]?.trim();
@@ -65,10 +87,11 @@ export async function recordSale(c: Campaign, orderHash: Uint8Array, orderAmount
   if (!kp) throw new Error("relayer not configured");
   const relayer = address(kp.publicKey.toBase58());
   if (relayer !== c.attestor) throw new Error("relayer key is not this campaign's attestor");
-  const conn = new Connection(RPC, "confirmed");
-  const lamports = BigInt(await conn.getMinimumBalanceForRentExemption(COMMISSION_LEN));
-  const { instruction } = await recordSaleIx({ attestor: relayer, payer: relayer, campaign: c.address, vault: c.vault, orderHash, orderAmount, creator: router, lamports });
-  return send(conn, kp, [instruction]);
+  return withFailover(async (conn) => {
+    const lamports = BigInt(await conn.getMinimumBalanceForRentExemption(COMMISSION_LEN));
+    const { instruction } = await recordSaleIx({ attestor: relayer, payer: relayer, campaign: c.address, vault: c.vault, orderHash, orderAmount, creator: router, lamports });
+    return send(conn, kp, [instruction]);
+  });
 }
 
 let lastSweep = 0;
@@ -92,7 +115,8 @@ export async function sweepDue(c: Campaign): Promise<string[]> {
     const acct = await conn.getAccountInfo(new PublicKey(payeeToken), "confirmed");
     if (!acct || decodeTokenAccount(Uint8Array.from(acct.data))?.owner !== m.payee) continue;
     try {
-      done.push(await send(conn, kp, [releaseIx({ campaign: c.address, vault: c.vault, commission: m.address, payeeToken, rentPayer: m.rentPayer, treasuryToken })]));
+      const ix = releaseIx({ campaign: c.address, vault: c.vault, commission: m.address, payeeToken, rentPayer: m.rentPayer, treasuryToken });
+      done.push(await withFailover((w) => send(w, kp, [ix])));
     } catch {
       // Another keeper (or an earlier sweep) may have released it.
     }

@@ -110,7 +110,7 @@ export function Proof() {
     { k: s?.deployed ? t.proof.program : t.proof.pending, v: <a href={explorerAddress(PROGRAM_ADDRESS)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-mono text-sm hover:text-paid">{short(PROGRAM_ADDRESS, 5)}<ArrowUpRight size={13} /></a> },
     { k: t.proof.size, v: <span><Counter value={s?.size ?? 9272} /> <span className="text-sm text-muted">bytes</span></span> },
     { k: t.proof.instructions, v: <Counter value={6} /> },
-    { k: t.proof.tests, v: <Counter value={26} /> },
+    { k: t.proof.tests, v: <Counter value={33} /> },
     { k: t.proof.license, v: "Apache-2.0" },
   ];
   return (
@@ -321,7 +321,7 @@ const CODE_TS = `// The relayer, after it has read a successful USDC transfer in
 import { recordSaleIx, COMMISSION_LEN } from "./commish/program";
 import { createHash } from "node:crypto";
 
-// One payment, one cut: the order hash is bound to the payment signature.
+// The order hash is bound to the payment signature; the relayer also refuses a payment whose closed commission was recorded before.
 const hash = createHash("sha256").update("commish:x402:" + campaign + ":" + paymentSig).digest();
 const { instruction } = await recordSaleIx({
   attestor: relayer.address,    // the key named by the campaign

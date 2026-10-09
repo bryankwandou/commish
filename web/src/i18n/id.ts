@@ -22,12 +22,12 @@ const id: Dictionary = {
     sub: "Agen membayar sebuah tool 0,05 USDC lewat HTTP 402. Router yang mengirimnya ke sana mendapat 10%, dicadangkan on-chain sehingga tool tidak bisa memakainya. Setelah jendela refund 10 menit, siapa pun bisa mencairkannya, dan dana hanya bisa sampai ke router. Pengguna pertama adalah agen. Manusia tidak ada di alur ini.",
     ctaBrand: "Coba endpoint 402",
     ctaCreator: "Saya me-route agen",
-    note: "Non-kustodian dan open source. Setiap aturan di halaman ini dijalankan oleh program di Solana mainnet.",
+    note: "Non-kustodian dan open source. Aturan dana dan pembayaran dijalankan program di Solana mainnet; relayer memverifikasi setiap pembayaran sebelum dicatat.",
   },
   flow: {
     title: "Ikuti satu potongan router",
     order: "Trafik",
-    orderValue: "1.000 panggilan berbayar · 50,00 USDC",
+    orderValue: "Contoh: 1.000 panggilan berbayar · 50,00 USDC",
     rate: "Potongan router 10%",
     window: "Jendela refund",
     payee: "Penerima",
@@ -44,7 +44,7 @@ const id: Dictionary = {
     close: "Biarkan jendela tutup",
     early: "Cairkan lebih awal",
     reset: "Ulangi",
-    idle: "Agen membayar tool untuk 1.000 panggilan lewat satu router. Catat untuk mencadangkan potongan router.",
+    idle: "Contoh simulasi, bukan trafik nyata: agen membayar tool untuk 1.000 panggilan lewat satu router. Catat untuk mencadangkan potongan router.",
     held: "5,00 USDC dicadangkan di vault campaign. Tool tidak bisa menariknya, dan panggilan yang di-refund dalam jendela membatalkan bagiannya.",
     paidBuyer: "Dibayar ke pembeli, yang membeli potongan lebih awal. Router sudah menerima uangnya, dan rent akun kembali ke pembayarnya.",
     paid: "Dibayar ke wallet router, dikurangi fee 1%. Akun komisi ditutup dan rent-nya kembali ke pembayarnya.",
@@ -110,7 +110,7 @@ const id: Dictionary = {
       },
       {
         t: "Satu pembayaran, satu potongan",
-        d: "Alamat komisi berasal dari hash tanda tangan pembayaran. Mencatat pembayaran yang sama dua kali akan gagal.",
+        d: "Alamat komisi berasal dari hash tanda tangan pembayaran, jadi program menolak pencatatan kedua selama potongan masih terbuka. Setelah ditutup, relayer memeriksa riwayat on-chain alamat itu dan menolak pembayaran yang sama.",
       },
       {
         t: "Hanya attestor yang mencatat",
@@ -168,7 +168,7 @@ const id: Dictionary = {
   integrate: {
     kicker: "Integrasi",
     title: "Catat panggilan berbayar",
-    sub: "Relayer menandatangani satu instruksi per pembayaran yang sudah diverifikasi. Hash order adalah SHA-256 dari campaign dan tanda tangan pembayaran, jadi satu pembayaran hanya bisa menghasilkan satu potongan.",
+    sub: "Relayer menandatangani satu instruksi per pembayaran yang sudah diverifikasi. Hash order adalah SHA-256 dari campaign dan tanda tangan pembayaran, jadi pembayaran yang sama selalu menunjuk ke alamat komisi yang sama.",
     tabs: [
       "TypeScript",
       "Peta event",
