@@ -7,7 +7,7 @@
 > **Agents pay tools per call over HTTP 402. Commish holds the router's cut on Solana until the paid call can no longer be refunded, then anyone can release it, and it can only go to the router.**
 
 [![Solana Mainnet](https://img.shields.io/badge/Solana-Mainnet--Beta-9945FF?logo=solana&logoColor=white)](https://explorer.solana.com/address/CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB)
-[![Demo](https://img.shields.io/badge/Demo-2%3A13%20on%20mainnet-111111?logo=vercel&logoColor=white)](https://getcommish.vercel.app/en/demo)
+[![Demo](https://img.shields.io/badge/Demo-1%3A17%20on%20mainnet-111111?logo=vercel&logoColor=white)](https://getcommish.vercel.app/en/demo)
 [![x402](https://img.shields.io/badge/x402-HTTP%20402%20endpoint-FF6B00)](https://getcommish.vercel.app/en/agent)
 [![Pinocchio](https://img.shields.io/badge/Pinocchio-0.11-FF6B00)](https://github.com/anza-xyz/pinocchio)
 [![Program size](https://img.shields.io/badge/Program-9%2C272%20bytes-2F80ED)](#the-program)
@@ -16,7 +16,7 @@
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Colosseum](https://img.shields.io/badge/Colosseum-Crypto%20World's%20Fair%202026-FF6B00)](https://arena.colosseum.org/projects/explore/commish)
 
-<p align="center"><sub>▶ <a href="https://getcommish.vercel.app/en/demo"><b>Watch the 2:13 demo</b></a>: one full cycle recorded on Solana mainnet, 6 Oct 2026. Nothing simulated.</sub></p>
+<p align="center"><sub>▶ <a href="https://getcommish.vercel.app/en/demo"><b>Watch the 1:17 demo</b></a>: one full cycle recorded on Solana mainnet, 6 Oct 2026, with diagrams for each step.</sub></p>
 
 ---
 
@@ -672,7 +672,7 @@ the program, the app and the tests.
 
 ## Media and Credits
 
-- **Demo video** (2:13, x402 cycle on mainnet, 6 Oct 2026): [getcommish.vercel.app/en/demo](https://getcommish.vercel.app/en/demo).
+- **Demo video** (1:17, x402 cycle on mainnet, 6 Oct 2026): [getcommish.vercel.app/en/demo](https://getcommish.vercel.app/en/demo).
 - **Launch video** (23 s, affiliate version): [`brag-output/brag.mp4`](brag-output/brag.mp4), made from the running app.
 - **Product walkthrough**: [`docs/video/commish-walkthrough.mp4`](docs/video/commish-walkthrough.mp4).
 - **Pitch deck** (12 slides): [`pitch/commish-pitch.pdf`](pitch/commish-pitch.pdf).

@@ -25,9 +25,9 @@ export default async function Demo({ params }: PageProps<"/[lang]/demo">) {
       <Header />
       <main className="mx-auto max-w-5xl px-5 py-14">
         <h1 className="text-3xl font-semibold tracking-tight">Demo: one full cycle on mainnet</h1>
-        <p className="mt-2 text-muted">Recorded on 6 Oct 2026 against Solana mainnet. Nothing is simulated; the 10-minute wait is cut, every timestamp on screen is real.</p>
+        <p className="mt-2 text-muted">Recorded on 6 Oct 2026 against Solana mainnet. The payment, the hold and the release are real transactions; animated diagrams explain each step, and the refund case is a diagram, not a recording. The 10-minute wait is cut; every timestamp on screen is real.</p>
         <video className="mt-6 w-full rounded-xl border border-line bg-black" src="/demo/commish-x402-demo.mp4" poster="/demo/poster.jpg" controls playsInline preload="metadata" />
-        <p className="mt-2 text-xs text-muted"><a className="underline" href="/demo/commish-x402-demo.mp4" download>Download MP4</a> (2:13, 1080p, 23 MB)</p>
+        <p className="mt-2 text-xs text-muted"><a className="underline" href="/demo/commish-x402-demo.mp4" download>Download MP4</a> (1:17, 1080p, 11 MB)</p>
 
         <div className="mt-8 overflow-x-auto rounded-xl border border-line">
           <table className="w-full min-w-[640px] text-left text-sm">
