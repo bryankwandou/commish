@@ -25,6 +25,9 @@ curl -i "${SITE_URL}/api/agent/call?ref=${ref}"
 
 # 2. Pay 0.05 USDC (50000 base units) to "payTo" from the 402 body,
 #    with memo "commish:${ref}". Keep the tx signature.
+#    With the Solana CLI, for example:
+spl-token transfer EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v 0.05 ${payTo ?? "<payTo>"} \
+  --with-memo "commish:${ref}" -u mainnet-beta
 
 # 3. Retry with the signature as proof.
 curl "${SITE_URL}/api/agent/call?ref=${ref}" \\
