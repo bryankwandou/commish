@@ -683,10 +683,11 @@ the program, the app and the tests.
 
 ## Media and Credits
 
-- **Demo video** (1:17, x402 cycle on mainnet, 6 Oct 2026): [getcommish.vercel.app/en/demo](https://getcommish.vercel.app/en/demo).
+- **Demo video** (1:17, x402 cycle on mainnet, 6 Oct 2026): [youtu.be/KpMuHMvmdPQ](https://youtu.be/KpMuHMvmdPQ), also on [getcommish.vercel.app/en/demo](https://getcommish.vercel.app/en/demo).
+- **Pitch video** (1:45): [youtu.be/M5NA2SSfMH4](https://youtu.be/M5NA2SSfMH4).
 - **Launch video** (23 s, affiliate version): [`brag-output/brag.mp4`](brag-output/brag.mp4), made from the running app.
-- **Product walkthrough**: [`docs/video/commish-walkthrough.mp4`](docs/video/commish-walkthrough.mp4).
-- **Pitch deck** (12 slides): [`pitch/commish-pitch.pdf`](pitch/commish-pitch.pdf).
+- **Product walkthrough** (old affiliate version, before the x402 pivot on 6 Oct 2026): [`docs/video/commish-walkthrough.mp4`](docs/video/commish-walkthrough.mp4).
+- **Pitch deck** (12 slides, old affiliate version, before the x402 pivot): [`pitch/commish-pitch.pdf`](pitch/commish-pitch.pdf).
 
 Music: "Happy Beats / Business Moves" Vol. 1, Vol. 10 and Vol. 12 by Sascha Ende
 ([ende.app](https://ende.app/en)), CC BY 4.0. Sound effects by
