@@ -128,16 +128,19 @@ Applying to a track is not winning it; none of these sponsors has reviewed or en
 
 ## What Is Commish?
 
-Commish is a holdback layer for x402, the HTTP 402 flow AI agents use to pay
-tools per call. When an agent pays a tool in USDC, the router that sent it
-earns a cut that the program reserves in its own account. For 600 seconds a
-refund can cancel it; after that anyone can release it, and it can only pay
-the router. The whole protocol is one Pinocchio program with a **9,272-byte**
-binary, live on Solana mainnet.
+Commish is an escrow protocol for affiliate commissions. A brand locks a USDC
+budget in a campaign vault. Each sale a creator refers reserves that creator's
+cut in its own on-chain account, where the brand can no longer spend it. When
+the refund window closes, anyone can trigger the payout, and it can only land
+in the creator's token account.
 
-The program was first built for affiliate commissions (brand, creator, order),
-and the sections below still use those words. The roles map one to one: brand
-→ tool treasury, attestor → relayer, creator → router, order → paid call.
+Brands keep the refund window they already use. Creators get something they
+never had: a public, binding promise that the money exists and will be paid on
+a known date. A creator who does not want to wait can sell that promise to a
+buyer for cash today.
+
+The whole protocol is one Pinocchio program with a **9,272-byte** binary, deployed to
+Solana mainnet for **0.04901 SOL**.
 
 ---
 
@@ -253,46 +256,36 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    AG[AI agent<br/>own wallet]
-    subgraph Server["Next.js on Vercel (server)"]
-        CALL[GET /api/agent/call<br/>402 terms, payment check]
-        REL[Relayer<br/>RELAYER_SECRET_KEY]
-        KEEP[Keeper sweep<br/>KEEPER_SECRET_KEY]
-        READ[Read API + live ledger]
+    subgraph Browser
+        W[Wallet: Phantom, Solflare, Backpack]
+        UI[Next.js app<br/>landing, brand console,<br/>creator desk, docs]
     end
-    PANTA[Panta API<br/>paid tool]
-    RPC[Solami RPC<br/>RPC Fast failover]
+    subgraph Server["Next.js server routes"]
+        API[Read API<br/>getProgramAccounts filters]
+        RPCP[RPC proxy<br/>method allow-list]
+    end
     subgraph Solana["Solana mainnet"]
         P[Commish program]
+        CA[Campaign PDA]
         V[USDC vault ATA]
         CM[Commission PDAs]
+        T[SPL Token program]
     end
-    ROUTER[Router's USDC account]
-    AG -- 1. call, gets 402 --> CALL
-    AG -- 2. pays USDC + memo --> V
-    AG -- 3. retries with signature --> CALL
-    CALL -- verify payment --> RPC
-    CALL --> PANTA
-    CALL --> REL
-    REL -- record_sale / cancel --> P
-    KEEP -- release after 600 s --> P
-    P --> V & CM
-    P -- payout minus 1% --> ROUTER
-    READ --> RPC --> Solana
+    SHOP[Brand's shop server<br/>attestor key] -- record_sale / cancel --> P
+    UI -- builds transactions --> W
+    W -- signed transactions --> RPCP --> P
+    UI --> API --> Solana
+    P --> CA & V & CM
+    P -- CPI transfer --> T
 ```
 
 - **The program is the source of truth.** There is no database. Every balance,
   reservation and commission shown in the app is read from program accounts.
-- **Who signs.** The browser app holds no keys and never asks for one. The
-  server holds two: the relayer key (`RELAYER_SECRET_KEY`, the campaign's
-  attestor) and the keeper key (`KEEPER_SECRET_KEY`). They can only record,
-  cancel and release; they cannot withdraw router cuts to any other address.
-  A stolen relayer key could record fake calls against the vault's
-  unreserved balance, so that balance is its blast radius.
-- **Who is the attestor.** On the live x402 campaign the attestor is the
-  relayer key above, on Commish's server. In the original affiliate design it
-  is the brand's own key on its shop server, or the brand console acting from
-  a connected wallet.
+- **The server never signs.** Server routes only read chain state and forward
+  a fixed list of JSON-RPC methods for the browser.
+- **The attestor is the brand's own key.** It lives on the brand's shop
+  server, not on Commish infrastructure. For small shops, the brand console
+  can act as the attestor from a connected wallet.
 
 ---
 
@@ -395,33 +388,16 @@ assumed.
 ### Order hash
 
 The commission address is a PDA of the order hash, so one order can only ever
-be recorded once. The program takes any 32 bytes; the two paths compute them
-differently.
-
-**x402 (the live product).** The relayer uses plain SHA-256 of the campaign
-and the agent's payment signature, with no key
-([`web/src/lib/agent.ts`](web/src/lib/agent.ts)):
-
-```
-order_hash = SHA-256("commish:x402:" + campaign + ":" + payment_signature)
-```
-
-One payment can therefore earn only one cut. The input is public once the
-payment lands, so anyone can compute the address. Since the 5 Oct 2026
-upgrade (finding 1, below) the program creates commission accounts with
-`CreateAccountAllowPrefund`, so sending lamports to that address first no
-longer blocks `record_sale`.
-
-**Affiliate (original brand console).** Order IDs can be guessed, so the client
-keys the hash ([`orderHash`](web/src/lib/commish/program.ts)):
+be recorded once.
 
 ```
 order_hash = HMAC-SHA256(key, "commish:v1" || campaign || order_id)
 ```
 
 The key is known only to the brand: its shop secret, or a key the brand
-console derives from a wallet signature. See finding 1 in the
-[security notes](docs/INTERNAL_SECURITY_AUDIT.md).
+console derives from a wallet signature. Without it, nobody can compute the
+address of a future order and create it first to block the sale. See finding 1
+in the [security notes](docs/INTERNAL_SECURITY_AUDIT.md).
 
 ### Error codes
 
@@ -510,13 +486,9 @@ cd program && npm run build && sha256sum target/deploy/commish.so
 | Web app | Next.js (App Router), React, TypeScript, Tailwind CSS |
 | Wallets | Solana Wallet Adapter (Phantom, Solflare, Backpack and any Wallet Standard wallet) |
 | Client | `@solana/kit`, hand-written decoders and instruction builders |
-| Agent payments | x402 (HTTP 402): `GET /api/agent/call` returns price, vault and memo, then serves the data on retry with the payment signature |
-| Paid tool | Panta API (prediction-market data, [`web/src/lib/panta.ts`](web/src/lib/panta.ts)) |
-| RPC | Solami for every server-side read ([`web/src/lib/solami.ts`](web/src/lib/solami.ts)); RPC Fast as failover ([`web/src/lib/rpcfast.ts`](web/src/lib/rpcfast.ts)) |
 | i18n | English, Bahasa Indonesia, Español, 中文 |
 | Hosting | Vercel |
 | Pitch and media | Plinth (deck), PptxGenJS (PowerPoint), Playwright and ffmpeg (videos) |
-| Development | Built with AI coding tools (Claude Code) |
 
 ---
 
@@ -553,9 +525,7 @@ cd web && RPC_URL=http://127.0.0.1:8899 node --import tsx scripts/lifecycle.mts 
 
 ## Environment Variables
 
-The browser app holds no keys. The server holds the relayer and keeper keys,
-which can only record, cancel and release; they cannot withdraw router cuts to
-any other address. Those keys and the API keys below are secrets: keep them in
+The app holds no private keys. The API keys below are secrets: keep them in
 `web/.env.local` or your host's env settings, never in the repo.
 
 | Variable | Used for | Default |
@@ -574,8 +544,6 @@ any other address. Those keys and the API keys below are secrets: keep them in
 | `PANTA_API_URL` | Panta API base URL | Panta's public API |
 | `COMMISH_DEMO_CAMPAIGN` | campaign the 402 endpoint and `/live` use; mainnet: `GvuUZi4ggeH3FC3AC7RkApQQHBRizwKW5XTRtRWStMmR` | unset: both are off |
 | `COMMISH_FOUNDER_PUBKEYS` | comma-separated wallets `/live` labels as SOAK (founder-run) | empty |
-| `RELAYER_SECRET_KEY` | the relayer key (campaign attestor) that signs `record_sale` and `cancel` (secret) | unset: no recording |
-| `KEEPER_SECRET_KEY` | the keeper key that pays fees for the permissionless `release` (secret) | the relayer key |
 
 ### Run it on your own Solami key
 
@@ -598,12 +566,6 @@ any other address. Those keys and the API keys below are secrets: keep them in
 ---
 
 ## Integration Guide for Brands
-
-> **For x402 tools, read [`/docs#integration`](https://getcommish.vercel.app/en/docs)
-> and [`web/src/lib/agent.ts`](web/src/lib/agent.ts) instead.** There the order
-> is a paid call, the router comes from the payment memo, and the order hash is
-> SHA-256 of the campaign and the payment signature (see [Order hash](#order-hash)).
-> The steps below are the original affiliate integration.
 
 1. Create a campaign in the brand console: rate, refund window, attestor key.
 2. Deposit USDC into the campaign vault.
@@ -660,11 +622,8 @@ Reporting policy: [SECURITY.md](SECURITY.md).
   window) and `withdraw` (the unreserved part, to the brand).
 - **Token checks:** only the legacy SPL Token program is accepted, and every
   token account is checked against the campaign's mint.
-- **Pre-funding cannot block a sale:** since the 5 Oct 2026 upgrade the program
-  creates commission accounts with `CreateAccountAllowPrefund`. On x402 the
-  order hash is plain SHA-256 of the campaign and the payment signature; the
-  affiliate brand console also keys it (HMAC-SHA256) so order IDs cannot be
-  guessed. See [Order hash](#order-hash).
+- **Order hashes are keyed (HMAC-SHA256),** preventing third parties from
+  predicting commission addresses and pre-funding them to grief sales.
 - **Single active commission per order hash:** The commission PDA address is derived
   from `["commission", campaign, order_hash]`. Once paid out or cancelled, the account
   is closed; only the attestor could record that order hash again.
@@ -688,8 +647,7 @@ Reporting policy: [SECURITY.md](SECURITY.md).
 | [`web/src/lib/commish/program.ts`](web/src/lib/commish/program.ts) | the client: decoders, PDA derivation, every instruction builder |
 | [`web/scripts/`](web/scripts) | lifecycle and griefing checks against a local validator |
 | [`docs/`](docs) | screenshots, security notes, on-chain proof, video scripts |
-| [`pitch/commish-x402-deck.pptx`](pitch/commish-x402-deck.pptx) | the submitted pitch deck (x402 holdback, 11 slides, 14 Oct 2026) |
-| [`pitch/`](pitch) (other files) | old: the affiliate deck from before the x402 pivot (PDF, PowerPoint, HTML source) |
+| [`pitch/`](pitch) | the pitch deck: PDF, PowerPoint (pixel-exact and editable), HTML source with speaker notes |
 | [`research/commish-sources.md`](research/commish-sources.md) | every outside number, with its page and a verbatim quote |
 | [`brag-output/`](brag-output) | the 23-second launch video, its poster and share copy |
 
@@ -719,7 +677,7 @@ No token is planned.
 **Vincentius Bryan Kwandou** (X [@nayrbryangaming](https://x.com/nayrbryangaming), GitHub [@bryankwandou](https://github.com/bryankwandou)), founder and sole developer, working remotely from Indonesia.
 Informatics student in Makassar, Indonesia, and lead of the Superteam campus
 club. A working creator since 2022 (Objkt, Drip, Shutterstock, Upwork). Built
-the program, the app and the tests with AI coding tools (Claude Code).
+the program, the app and the tests.
 
 ---
 
@@ -729,8 +687,7 @@ the program, the app and the tests with AI coding tools (Claude Code).
 - **Pitch video** (1:45): [youtu.be/M5NA2SSfMH4](https://youtu.be/M5NA2SSfMH4).
 - **Launch video** (23 s, affiliate version): [`brag-output/brag.mp4`](brag-output/brag.mp4), made from the running app.
 - **Product walkthrough** (old affiliate version, before the x402 pivot on 6 Oct 2026): [`docs/video/commish-walkthrough.mp4`](docs/video/commish-walkthrough.mp4).
-- **Pitch deck** (11 slides, x402 holdback, the submitted version): [`pitch/commish-x402-deck.pptx`](pitch/commish-x402-deck.pptx).
-- **Old pitch deck** (12 slides, affiliate version, before the x402 pivot): [`pitch/commish-pitch.pdf`](pitch/commish-pitch.pdf).
+- **Pitch deck** (12 slides, old affiliate version, before the x402 pivot): [`pitch/commish-pitch.pdf`](pitch/commish-pitch.pdf).
 
 Music: "Happy Beats / Business Moves" Vol. 1, Vol. 10 and Vol. 12 by Sascha Ende
 ([ende.app](https://ende.app/en)), CC BY 4.0. Sound effects by
@@ -779,8 +736,8 @@ Music: "Happy Beats / Business Moves" Vol. 1, Vol. 10 and Vol. 12 by Sascha Ende
 | Status | Artinya |
 |--------|---------|
 | **LIVE DI MAINNET** | Program berjalan di Solana mainnet-beta; biaya deploy 0,04901 SOL |
-| **DANA DI VAULT PROGRAM** | Potongan router yang sudah dicadangkan hanya bisa keluar ke router itu sendiri, lewat `release` |
-| **KUNCI DI SERVER TERBATAS** | Aplikasi di browser tidak menyimpan kunci. Server menyimpan kunci relayer dan keeper, yang hanya bisa mencatat, membatalkan dan mencairkan; kunci itu tidak bisa menarik potongan router ke alamat lain |
+| **NON-KUSTODIAL** | Dana ada di vault milik program. Tidak ada server, termasuk tim Commish, yang bisa memindahkannya |
+| **TANPA KUNCI DI SERVER** | Website tidak menyimpan private key. Setiap transaksi ditandatangani di wallet pengguna |
 | **TETAP JALAN TANPA WEBSITE** | `release` tidak butuh penanda tangan, jadi komisi yang jatuh tempo bisa dibayar dari klien Solana mana pun |
 | **REVIEW INTERNAL & DIUJI DENGAN SERANGAN** | Pemeriksaan internal baris-per-baris selesai (belum ada audit independen pihak ketiga); 33 tes serangan binary dan 41 pemeriksaan siklus penuh lolos di validator lokal |
 | **MULTIBAHASA** | English, Bahasa Indonesia, Español, 中文; tema terang dan gelap; tata letak untuk ponsel |
@@ -789,18 +746,19 @@ Music: "Happy Beats / Business Moves" Vol. 1, Vol. 10 and Vol. 12 by Sascha Ende
 
 ## Apa Itu Commish?
 
-Commish adalah lapisan holdback untuk x402, alur HTTP 402 yang dipakai agen AI
-untuk membayar tool per panggilan. Saat agen membayar tool dengan USDC, router
-yang mengirimnya mendapat potongan yang dicadangkan program di akunnya sendiri.
-Selama 600 detik refund bisa membatalkannya; setelah itu siapa pun bisa
-mencairkannya, dan dana hanya bisa dibayar ke router itu. Seluruh protokol
-adalah satu program Pinocchio dengan binary **9.272 byte**, live di Solana
-mainnet.
+Commish adalah protokol escrow untuk komisi afiliasi. Brand mengunci anggaran
+USDC di vault kampanye. Setiap penjualan dari kreator mencadangkan bagian
+kreator itu di akun on-chain tersendiri, dan brand tidak bisa lagi
+memakainya. Saat masa refund berakhir, siapa pun bisa memicu pembayaran, dan
+dana hanya bisa masuk ke token account milik kreator.
 
-Program ini awalnya dibuat untuk komisi afiliasi (brand, kreator, pesanan), dan
-bagian di bawah masih memakai istilah itu. Perannya berpindah satu-satu: brand
-→ treasury tool, attestor → relayer, kreator → router, pesanan → panggilan
-berbayar.
+Brand tetap memakai masa refund yang sudah mereka pakai. Kreator mendapat hal
+yang belum pernah mereka punya: janji publik dan mengikat bahwa uangnya ada dan
+akan dibayar pada tanggal yang jelas. Kreator yang tidak mau menunggu bisa
+menjual janji itu ke pembeli dan menerima uang hari ini.
+
+Seluruh protokol adalah satu program Pinocchio dengan binary **9.272 byte**,
+di-deploy ke Solana mainnet dengan biaya **0,04901 SOL**.
 
 ---
 
@@ -888,16 +846,11 @@ Diagram lengkap ada di bagian [System Architecture](#system-architecture).
 
 - **Program adalah sumber kebenaran.** Tidak ada database. Setiap saldo,
   cadangan dan komisi di aplikasi dibaca langsung dari akun program.
-- **Siapa yang menandatangani.** Aplikasi di browser tidak menyimpan kunci.
-  Server menyimpan dua: kunci relayer (`RELAYER_SECRET_KEY`, attestor
-  kampanye) dan kunci keeper (`KEEPER_SECRET_KEY`). Keduanya hanya bisa
-  mencatat, membatalkan dan mencairkan; tidak bisa menarik potongan router ke
-  alamat lain. Kunci relayer yang dicuri bisa mencatat panggilan palsu atas
-  saldo vault yang belum dicadangkan, jadi saldo itulah batas risikonya.
-- **Siapa attestor-nya.** Di kampanye x402 yang live, attestor adalah kunci
-  relayer di atas, di server Commish. Di desain afiliasi awal, attestor adalah
-  kunci milik brand di server tokonya, atau konsol brand dari wallet yang
-  terhubung.
+- **Server tidak pernah menandatangani.** Route server hanya membaca state
+  chain dan meneruskan daftar metode JSON-RPC yang terbatas untuk browser.
+- **Attestor adalah kunci milik brand sendiri.** Kunci itu ada di server toko
+  brand, bukan di infrastruktur Commish. Untuk toko kecil, konsol brand bisa
+  berperan sebagai attestor dari wallet yang terhubung.
 
 ---
 
@@ -977,14 +930,10 @@ sudah diuji, bukan diasumsikan.
 Tabel akun dan kode error (6000 sampai 6017) ada di bagian
 [The Program](#the-program).
 
-**Hash pesanan.** Alamat komisi adalah PDA dari hash pesanan. Di x402 (produk
-yang live), relayer memakai SHA-256 biasa tanpa kunci:
-`SHA-256("commish:x402:" + kampanye + ":" + tanda_tangan_pembayaran)`, jadi
-satu pembayaran hanya bisa menghasilkan satu potongan. Konsol brand afiliasi
-yang lama memakai `HMAC-SHA256(kunci, "commish:v1" || kampanye || id_pesanan)`
-karena ID pesanan bisa ditebak. Sejak upgrade 5 Okt 2026 program membuat akun
-komisi dengan `CreateAccountAllowPrefund`, jadi mengirim lamport lebih dulu ke
-alamat itu tidak lagi memblokir `record_sale`.
+**Hash pesanan.** Alamat komisi adalah PDA dari
+`HMAC-SHA256(kunci, "commish:v1" || kampanye || id_pesanan)`. Kuncinya hanya
+diketahui brand, jadi tidak ada yang bisa menghitung alamat pesanan berikutnya
+dan membuatnya lebih dulu untuk memblokir penjualan.
 
 ---
 
@@ -1053,11 +1002,7 @@ Perintah untuk memverifikasi sendiri ada di bagian [On-Chain Proof](#on-chain-pr
 | Aplikasi web | Next.js, React, TypeScript, Tailwind CSS |
 | Wallet | Solana Wallet Adapter |
 | Klien | `@solana/kit` |
-| Pembayaran agen | x402 (HTTP 402) |
-| Tool berbayar | Panta API |
-| RPC | Solami; RPC Fast sebagai cadangan |
 | Hosting | Vercel |
-| Pengembangan | Dibangun dengan AI coding tools (Claude Code) |
 
 ---
 
@@ -1080,7 +1025,7 @@ Siklus penuh di validator lokal ada di bagian [Quick Start](#quick-start).
 
 ## Variabel Lingkungan
 
-Aplikasi di browser tidak menyimpan kunci. Server menyimpan kunci relayer dan keeper, yang hanya bisa mencatat, membatalkan dan mencairkan; tidak bisa menarik potongan router ke alamat lain. Kunci itu dan API key (Solami, Panta) bersifat rahasia; daftar lengkap variabel ada di bagian [Environment Variables](#environment-variables).
+Aplikasi tidak menyimpan private key. API key (Solami, Panta) bersifat rahasia; daftar lengkap variabel ada di bagian [Environment Variables](#environment-variables).
 
 | Variabel | Kegunaan | Default |
 | --- | --- | --- |
@@ -1091,12 +1036,6 @@ Aplikasi di browser tidak menyimpan kunci. Server menyimpan kunci relayer dan ke
 ---
 
 ## Panduan Integrasi untuk Brand
-
-> **Untuk tool x402, baca [`/docs#integration`](https://getcommish.vercel.app/en/docs)
-> dan [`web/src/lib/agent.ts`](web/src/lib/agent.ts).** Di sana pesanan adalah
-> panggilan berbayar, router diambil dari memo pembayaran, dan hash pesanan
-> adalah SHA-256 dari kampanye dan tanda tangan pembayaran. Langkah di bawah
-> adalah integrasi afiliasi yang asli.
 
 1. Buat kampanye di konsol brand: rate, masa refund, kunci attestor.
 2. Setor USDC ke vault kampanye.
@@ -1141,11 +1080,8 @@ Kebijakan pelaporan: [SECURITY.md](SECURITY.md).
   setelah masa refund) dan `withdraw` (bagian yang tidak dicadangkan, ke brand).
 - **Pemeriksaan token:** hanya program SPL Token versi lama yang diterima, dan
   setiap token account diperiksa terhadap mint kampanye.
-- **Pre-funding tidak bisa memblokir penjualan:** sejak upgrade 5 Okt 2026
-  program membuat akun komisi dengan `CreateAccountAllowPrefund`. Di x402 hash
-  pesanan adalah SHA-256 biasa dari kampanye dan tanda tangan pembayaran;
-  konsol brand afiliasi juga memakai kunci (HMAC-SHA256) agar ID pesanan tidak
-  bisa ditebak.
+- **Hash pesanan memakai kunci (HMAC-SHA256),** sehingga pihak ketiga tidak bisa
+  menebak alamat PDA komisi dan mendahului pendanaan (pre-funding) untuk mengganggu transaksi.
 - **Satu komisi aktif per hash pesanan:** Alamat PDA diturunkan dari
   `["commission", kampanye, order_hash]`. Setelah ditutup/dicairkan, hanya attestor yang
   dapat mencatat pesanan tersebut lagi.
@@ -1166,8 +1102,7 @@ Kebijakan pelaporan: [SECURITY.md](SECURITY.md).
 | [`web/`](web) | aplikasi Next.js: landing, konsol brand, meja kreator, dokumentasi, API |
 | [`web/scripts/`](web/scripts) | pemeriksaan siklus penuh dan griefing di validator lokal |
 | [`docs/`](docs) | screenshot, catatan keamanan, bukti on-chain, naskah video |
-| [`pitch/commish-x402-deck.pptx`](pitch/commish-x402-deck.pptx) | pitch deck yang disubmit (holdback x402, 11 slide, 14 Okt 2026) |
-| [`pitch/`](pitch) (file lain) | lama: deck afiliasi sebelum pivot x402 |
+| [`pitch/`](pitch) | pitch deck: PDF, PowerPoint, sumber HTML dengan catatan pembicara |
 | [`research/commish-sources.md`](research/commish-sources.md) | setiap angka dari luar, dengan halaman sumber dan kutipan asli |
 | [`brag-output/`](brag-output) | video peluncuran 23 detik |
 
@@ -1196,7 +1131,7 @@ Tidak ada rencana token.
 **Vincentius Bryan Kwandou** (X [@nayrbryangaming](https://x.com/nayrbryangaming), GitHub [@bryankwandou](https://github.com/bryankwandou)), founder dan satu-satunya developer, bekerja remote dari Indonesia.
 Mahasiswa informatika di Makassar dan ketua klub kampus Superteam. Kreator
 aktif sejak 2022 (Objkt, Drip, Shutterstock, Upwork). Membangun program,
-aplikasi dan tesnya dengan bantuan AI coding tools (Claude Code).
+aplikasi dan tesnya sendiri.
 
 ---
 
