@@ -49,7 +49,7 @@ Everything below is Apache-2.0 and in the public repo https://github.com/bryankw
 - The threat model (`docs/threat-model.md`), the internal security audit (`docs/INTERNAL_SECURITY_AUDIT.md`) and the live-validator proof run (`docs/proof/live-validator-run.md`).
 - The documentation site (https://getcommish.vercel.app/en/docs).
 
-Non-custodial: funds sit in program-owned vaults; the website holds no private key and every transaction is signed in the user's wallet (README.md, "Production Status"). The brand can withdraw only `vault balance - reserved`.
+Funds sit in program-owned vaults. The browser app holds no keys; the server holds the relayer and keeper keys, which can only record, cancel and release, and cannot withdraw router cuts to any other address (README.md, "System Architecture"). The brand can withdraw only `vault balance - reserved`.
 
 Commercial component (reason for the convertible track): 1% of each released commission, enforced on chain in `release()` (`FEE_BPS = 100`). Revenue to date: none (README-JUDGES.md).
 
