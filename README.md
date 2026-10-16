@@ -284,9 +284,10 @@ flowchart LR
   cancel and release; they cannot withdraw router cuts to any other address.
   A stolen relayer key could record fake calls against the vault's
   unreserved balance, so that balance is its blast radius.
-- **The attestor is the brand's own key.** It lives on the brand's shop
-  server, not on Commish infrastructure. For small shops, the brand console
-  can act as the attestor from a connected wallet.
+- **Who is the attestor.** On the live x402 campaign the attestor is the
+  relayer key above, on Commish's server. In the original affiliate design it
+  is the brand's own key on its shop server, or the brand console acting from
+  a connected wallet.
 
 ---
 
@@ -593,6 +594,12 @@ any other address. Those keys and the API keys below are secrets: keep them in
 
 ## Integration Guide for Brands
 
+> **For x402 tools, read [`/docs#integration`](https://getcommish.vercel.app/en/docs)
+> and [`web/src/lib/agent.ts`](web/src/lib/agent.ts) instead.** There the order
+> is a paid call, the router comes from the payment memo, and the order hash is
+> SHA-256 of the campaign and the payment signature (see [Order hash](#order-hash)).
+> The steps below are the original affiliate integration.
+
 1. Create a campaign in the brand console: rate, refund window, attestor key.
 2. Deposit USDC into the campaign vault.
 3. Creators share your product links with `?ref=<their wallet>`. Store the ref
@@ -882,9 +889,10 @@ Diagram lengkap ada di bagian [System Architecture](#system-architecture).
   mencatat, membatalkan dan mencairkan; tidak bisa menarik potongan router ke
   alamat lain. Kunci relayer yang dicuri bisa mencatat panggilan palsu atas
   saldo vault yang belum dicadangkan, jadi saldo itulah batas risikonya.
-- **Attestor adalah kunci milik brand sendiri.** Kunci itu ada di server toko
-  brand, bukan di infrastruktur Commish. Untuk toko kecil, konsol brand bisa
-  berperan sebagai attestor dari wallet yang terhubung.
+- **Siapa attestor-nya.** Di kampanye x402 yang live, attestor adalah kunci
+  relayer di atas, di server Commish. Di desain afiliasi awal, attestor adalah
+  kunci milik brand di server tokonya, atau konsol brand dari wallet yang
+  terhubung.
 
 ---
 
@@ -1078,6 +1086,12 @@ Aplikasi di browser tidak menyimpan kunci. Server menyimpan kunci relayer dan ke
 ---
 
 ## Panduan Integrasi untuk Brand
+
+> **Untuk tool x402, baca [`/docs#integration`](https://getcommish.vercel.app/en/docs)
+> dan [`web/src/lib/agent.ts`](web/src/lib/agent.ts).** Di sana pesanan adalah
+> panggilan berbayar, router diambil dari memo pembayaran, dan hash pesanan
+> adalah SHA-256 dari kampanye dan tanda tangan pembayaran. Langkah di bawah
+> adalah integrasi afiliasi yang asli.
 
 1. Buat kampanye di konsol brand: rate, masa refund, kunci attestor.
 2. Setor USDC ke vault kampanye.
