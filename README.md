@@ -253,27 +253,32 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    subgraph Browser
-        W[Wallet: Phantom, Solflare, Backpack]
-        UI[Next.js app<br/>landing, brand console,<br/>creator desk, docs]
+    AG[AI agent<br/>own wallet]
+    subgraph Server["Next.js on Vercel (server)"]
+        CALL[GET /api/agent/call<br/>402 terms, payment check]
+        REL[Relayer<br/>RELAYER_SECRET_KEY]
+        KEEP[Keeper sweep<br/>KEEPER_SECRET_KEY]
+        READ[Read API + live ledger]
     end
-    subgraph Server["Next.js server routes"]
-        API[Read API<br/>getProgramAccounts filters]
-        RPCP[RPC proxy<br/>method allow-list]
-    end
+    PANTA[Panta API<br/>paid tool]
+    RPC[Solami RPC<br/>RPC Fast failover]
     subgraph Solana["Solana mainnet"]
         P[Commish program]
-        CA[Campaign PDA]
         V[USDC vault ATA]
         CM[Commission PDAs]
-        T[SPL Token program]
     end
-    SHOP[Brand's shop server<br/>attestor key] -- record_sale / cancel --> P
-    UI -- builds transactions --> W
-    W -- signed transactions --> RPCP --> P
-    UI --> API --> Solana
-    P --> CA & V & CM
-    P -- CPI transfer --> T
+    ROUTER[Router's USDC account]
+    AG -- 1. call, gets 402 --> CALL
+    AG -- 2. pays USDC + memo --> V
+    AG -- 3. retries with signature --> CALL
+    CALL -- verify payment --> RPC
+    CALL --> PANTA
+    CALL --> REL
+    REL -- record_sale / cancel --> P
+    KEEP -- release after 600 s --> P
+    P --> V & CM
+    P -- payout minus 1% --> ROUTER
+    READ --> RPC --> Solana
 ```
 
 - **The program is the source of truth.** There is no database. Every balance,
