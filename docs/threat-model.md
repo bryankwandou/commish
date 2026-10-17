@@ -17,7 +17,7 @@ Scope: mainnet program `CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB` plus the o
 | Router (payee) | Untrusted | Sell its own pending claim |
 | Buyer desk | Untrusted | Buy a claim, collect at release |
 | Keeper | Untrusted | Call release after the window |
-| Upgrade authority | Trusted, single key | Replace the program |
+| Upgrade authority | Trusted, Squads 2-of-3 multisig (since 2026-10-17) | Replace the program |
 
 ## Threats
 
@@ -33,7 +33,7 @@ Scope: mainnet program `CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB` plus the o
 | T8 | Relayer key stolen | Fake commissions up to the vault balance. Treasury keeps vault small and rotates the attestor by new campaign | Accepted |
 | T9 | Relayer records unpaid call | Relayer verifies mint, destination, amount, memo on chain before recording | Off chain |
 | T10 | Buyer desk loses to refund | By design: sell transfers refund risk. Test shows desk ends with nothing after cancel | Disclosed |
-| T11 | Malicious upgrade | Single founder key today; multisig planned | Open |
+| T11 | Malicious upgrade | Squads 2-of-3 multisig `Hb21KhMo…6SCrz` since 2026-10-17 (was a single founder key) | Mitigated |
 | T12 | Dust orders | `ZeroCommission` if the cut rounds to 0; 0.05 USDC at 10% is fine | Tested |
 
 ## Residual risk

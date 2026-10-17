@@ -47,7 +47,7 @@ Six instructions:
 - Replay after close is possible. `release` and `cancel` close the commission account, so the same order hash can be recorded again. Two LiteSVM tests show this (`finding #2: the attestor can record an order again after ...`). Mitigation: the relayer refuses any payment whose commission PDA has transaction history, and keeps a ledger of processed signatures.
 - The tool treasury cannot withdraw reserved funds. Nobody can release early. Nobody can cancel late. Tests cover each case.
 - Internal security audit (AI agents at the maintainer's request, not a third-party audit) in `docs/INTERNAL_SECURITY_AUDIT.md`, a threat model in `docs/threat-model.md`.
-- Upgrade authority is the founder's wallet `42azYTNiC4bp6UtXXpEQ49adNWBbM6Hhx84xQAtEPfUe`. The 1% fee goes to the treasury `ETcQvsQek2w9feLfsqoe4AypCWfnrSwQiv3djqocaP2m`. The program can be changed by one key today. Moving it to a multisig is planned, not done.
+- Upgrade authority was the founder's wallet `42azYTNiC4bp6UtXXpEQ49adNWBbM6Hhx84xQAtEPfUe`; since 2026-10-17 it is the Squads 2-of-3 multisig `Hb21KhMoKXynxK4tj35UKqnxx6acuyQN3Leu5qQRSCrz` (vault `DtMehAZMH67R9QZxnrCAAzy5DmuZGTVdt3ckkXznrXVX`). The 1% fee goes to the treasury `ETcQvsQek2w9feLfsqoe4AypCWfnrSwQiv3djqocaP2m`. Changing the program now needs 2 of 3 signers.
 
 ## Fee
 

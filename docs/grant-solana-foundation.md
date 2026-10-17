@@ -18,7 +18,7 @@ Requested total: **USD 28,000** over about 6 months.
 ## 1. Project overview
 
 <!-- source: README-JUDGES.md, README.md -->
-Commish is an open-source, non-custodial USDC holdback program on Solana. A payer's router cut is locked in a program-owned vault, and held for a refund window (up to 90 days, `MAX_HOLD` in `program/src/lib.rs`). Then anyone can call `release` to pay it, or the attestor can `cancel` it if the caller was refunded. The pending claim can also be sold to a buyer desk for early payout. The program is 9,272 bytes (in a 9,296-byte account), written with Pinocchio, and is live on mainnet at `CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB`. It has 33 tests that attack the compiled binary. The first users are machine payments (x402 agents paying per call) and creator or affiliate commissions. This grant funds a third-party audit, moving the upgrade key to a multisig, a packaged SDK and reference relayer, and the first outside integrations.
+Commish is an open-source, non-custodial USDC holdback program on Solana. A payer's router cut is locked in a program-owned vault, and held for a refund window (up to 90 days, `MAX_HOLD` in `program/src/lib.rs`). Then anyone can call `release` to pay it, or the attestor can `cancel` it if the caller was refunded. The pending claim can also be sold to a buyer desk for early payout. The program is 9,272 bytes (in a 9,296-byte account), written with Pinocchio, and is live on mainnet at `CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB`. It has 33 tests that attack the compiled binary. The first users are machine payments (x402 agents paying per call) and creator or affiliate commissions. This grant funds a third-party audit, a packaged SDK and reference relayer, and the first outside integrations.
 
 ## 2. Problem and who it is for
 
@@ -72,7 +72,7 @@ Commercial component (reason for the convertible track): 1% of each released com
 
 Honest limits (from the repo):
 - **Traction is zero.** Every payment so far is a founder-run test labeled SOAK; foreign agents: 0 (README-JUDGES.md, soak reports).
-- **Single upgrade key today.** Multisig is planned, not done (README.md, README-JUDGES.md).
+- **Upgrade key.** Moved to a Squads 2-of-3 multisig (`Hb21KhMoKXynxK4tj35UKqnxx6acuyQN3Leu5qQRSCrz`) on 2026-10-17; before that it was a single key.
 - **Relayer is a trusted attestor.** A compromised relayer can reserve fake commissions up to the vault balance (`docs/threat-model.md`, T8).
 - **Known open issue T7.** An order hash can be recorded again after its commission closes; mitigated off chain only (`docs/threat-model.md`).
 - Security finding 1 (pre-funding griefing) is fixed on mainnet: upgrade tx `3TKdDeWE…B5gChVbH` on 2026-10-05 (`docs/INTERNAL_SECURITY_AUDIT.md`).
@@ -92,7 +92,7 @@ Total: **USD 28,000**. Development costs only (audit, developer time, infrastruc
 | | **Total** | | **$28,000** |
 
 ### M1: Program hardening and multisig ($5,000, months 1-2)
-- **Deliverable:** a program upgrade that (a) closes finding 1 on chain (create commission by transfer, allocate, assign) and (b) addresses replay after close (T7), for example with a non-closing tombstone or a nonce; new tests for each; upgrade authority moved to a Squads-style multisig.
+- **Deliverable:** a program upgrade that (a) closes finding 1 on chain (create commission by transfer, allocate, assign) and (b) addresses replay after close (T7), for example with a non-closing tombstone or a nonce; new tests for each. (The upgrade authority already moved to a Squads multisig on 2026-10-17, so this upgrade goes through a 2-of-3 proposal.)
 - **Acceptance criterion:** `cd program && npm test` passes with new tests for both fixes, the existing "KNOWN: same order hash can be recorded again" test is replaced by a rejection test, and `solana program show CmSHpw9Q...` shows an upgrade authority that is a multisig address, linked in the README.
 - **Budget:** about 6 weeks part-time dev at the founder's cost basis [RATE TO CONFIRM] plus rent and fees for the upgrade buffer.
 

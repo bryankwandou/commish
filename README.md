@@ -29,7 +29,7 @@
 | **Program (mainnet)** | [`CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB`](https://explorer.solana.com/address/CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB) |
 | **Live campaign** | [`GvuUZi4ggeH3FC3AC7RkApQQHBRizwKW5XTRtRWStMmR`](https://explorer.solana.com/address/GvuUZi4ggeH3FC3AC7RkApQQHBRizwKW5XTRtRWStMmR) (10% router cut, 600 s refund window) |
 | **Security** | [SECURITY.md](SECURITY.md) · [Internal Security Audit](docs/INTERNAL_SECURITY_AUDIT.md) · [Threat model](docs/threat-model.md) |
-| **Upgrade authority** | [`42azYTNiC4bp6UtXXpEQ49adNWBbM6Hhx84xQAtEPfUe`](https://explorer.solana.com/address/42azYTNiC4bp6UtXXpEQ49adNWBbM6Hhx84xQAtEPfUe) (single key today; Squads multisig planned) |
+| **Upgrade authority** | [Squads 2-of-3 multisig](https://explorer.solana.com/address/Hb21KhMoKXynxK4tj35UKqnxx6acuyQN3Leu5qQRSCrz) (vault [`DtMehAZM…kXznrXVX`](https://explorer.solana.com/address/DtMehAZMH67R9QZxnrCAAzy5DmuZGTVdt3ckkXznrXVX)), moved from the single key 42azYTNi…EPfUe on 2026-10-17 |
 | **Run it on your own Solami key** | [instructions](#run-it-on-your-own-solami-key) |
 
 ## How it works
@@ -86,7 +86,7 @@ Submitted to the Colosseum Crypto World's Fair main track ([project page](https:
 | **Solami** | Solami RPC is the data path for every server-side read: verifying each agent's USDC payment before `record_sale`, the campaign and vault, the [live ledger](https://getcommish.vercel.app/en/live) and the release sweep. Rate-limited calls back off and retry. A webhook receiver (HMAC-checked) and Beam tips are built behind flags. | [`web/src/lib/solami.ts`](web/src/lib/solami.ts) · [`web/src/app/api/solami/webhook/route.ts`](web/src/app/api/solami/webhook/route.ts) · [Run it on your own Solami key](#run-it-on-your-own-solami-key) |
 | **RPC Fast** | Failover mainnet RPC. When a Solami read is rate-limited or fails after two retries, `rpc()` sends it to RPC Fast (`solana-rpc.rpcfast.com`, Frankfurt), then to `RPC_URL`. `/api/agent/health` probes it on every call and reports `fallbackRpcOk`. | [`web/src/lib/rpcfast.ts`](web/src/lib/rpcfast.ts) · [`web/src/lib/agent.ts`](web/src/lib/agent.ts) `rpc()` · [health](https://getcommish.vercel.app/api/agent/health) |
 | **CertiK** (audit credits) | The program custodies USDC for third parties and is live on mainnet; it has had an internal review only. Scope we want audited: `program/src/lib.rs` (542 lines, six instructions). | [Internal Security Assurance](#internal-security-assurance) · [SECURITY.md](SECURITY.md) |
-| **Adevar Labs** (pre-audit) | Same scope. Known areas to review: trusted relayer (bounded by vault balance), re-recording after close (guarded off-chain), single-key upgrade authority. | [`docs/INTERNAL_SECURITY_AUDIT.md`](docs/INTERNAL_SECURITY_AUDIT.md) · [`docs/threat-model.md`](docs/threat-model.md) |
+| **Adevar Labs** (pre-audit) | Same scope. Known areas to review: trusted relayer (bounded by vault balance), re-recording after close (guarded off-chain), upgrade authority (now a 2-of-3 Squads multisig). | [`docs/INTERNAL_SECURITY_AUDIT.md`](docs/INTERNAL_SECURITY_AUDIT.md) · [`docs/threat-model.md`](docs/threat-model.md) |
 | **AkcaVPN** (credits) | Solo founder working remotely from Indonesia, operating the relayer and keeper keys that sign mainnet transactions. | [Team](#team) |
 
 Applying to a track is not winning it; none of these sponsors has reviewed or endorsed Commish.
@@ -448,7 +448,7 @@ validator with mainnet's feature set, and passed **41 of 41** checks
 | Program account | [CmSHpw9Q…w8D79Z8jjhWmPJfFB](https://explorer.solana.com/address/CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB) |
 | Deploy transaction | [vZRdesXg…2xWPk9Cv6](https://explorer.solana.com/tx/vZRdesXgmPhV15JwAHy5akzcsn5AWssFYGne5mCcbEcDqJufqxwZWzwSUXHbUoNKBEzaMaryR1h2kB2xWPk9Cv6) |
 | Upgrade transaction (finding #1 fix, 2026-10-05) | [3TKdDeWE…B5gChVbH](https://explorer.solana.com/tx/3TKdDeWEeKgsBA5skKqYHnzE8zkFDuUA54j7szYbx4Ejaarx2ZFyGBNkV7S5u5gQ18RQTwLM5DA6tQS2B5gChVbH) |
-| Upgrade authority | [42azYTNi…4xQAtEPfUe](https://explorer.solana.com/address/42azYTNiC4bp6UtXXpEQ49adNWBbM6Hhx84xQAtEPfUe), a single key |
+| Upgrade authority | [Squads 2-of-3 multisig](https://explorer.solana.com/address/Hb21KhMoKXynxK4tj35UKqnxx6acuyQN3Leu5qQRSCrz) (vault [`DtMehAZM…kXznrXVX`](https://explorer.solana.com/address/DtMehAZMH67R9QZxnrCAAzy5DmuZGTVdt3ckkXznrXVX)), moved from the single key 42azYTNi…EPfUe on 2026-10-17 ([multisig creation tx](https://explorer.solana.com/tx/49kzyE8kRHcwZosmfbP5PRkFR2JAwP2no7LajDSr4YZrTen1nCs3pgpakXSEphFy4USu3JqhwEfJBgkg8rJHZySb)) |
 | Deployed binary hash | `sha256 6a88a6d02bb2e41151340c7283890d2130a2e8d85c7dcce810f7d8b4c0ffb4f5` (9,272 bytes; the program account is 9,296 bytes, the rest is zero padding). Matched against a local build of this source after the 2026-10-05 upgrade. |
 
 To verify the binary yourself:
@@ -630,8 +630,8 @@ Reporting policy: [SECURITY.md](SECURITY.md).
 - **Privileged Controls & Governance:** No application-level admin accounts, no
   pause switch. The only fee is the 1% taken at release, fixed in the program
   source (`FEE_BPS = 100`). However, the program remains upgradeable
-  on mainnet under a single key (`42azYTNi…EPfUe`), scheduled to transition to a Squads
-  multisig before scaling commercial volume.
+  on mainnet; since 2026-10-17 an upgrade needs 2 of 3 signers on a Squads
+  multisig (`Hb21KhMo…6SCrz`). Earlier upgrades used the single key `42azYTNi…EPfUe`.
 - **Audit Posture:** Internal security audit and adversarial testing, done by AI agents at the
   maintainer's request; no third-party audit. See full disclosure in [SECURITY.md](SECURITY.md) and
   [docs/INTERNAL_SECURITY_AUDIT.md](docs/INTERNAL_SECURITY_AUDIT.md).
@@ -664,7 +664,7 @@ of the deployed product.
 | --- | --- |
 | Sep 2026 | Program on mainnet (first built for affiliate commissions) |
 | Oct 2026 | x402 holdback live: public 402 endpoint, Panta as the first paid tool, Solami RPC, full cycle on mainnet; Colosseum submission |
-| Q4 2026 | Third-party audit; upgrade authority to a Squads multisig; relayer and keeper running 24/7 |
+| Q4 2026 | Third-party audit; relayer and keeper running 24/7 |
 | Q1 2027 | More paid tools behind the endpoint; an SDK so any x402 seller can add a router cut; first outside agents |
 | 2027 | Open relayer set; market for pending router claims |
 
@@ -969,7 +969,7 @@ mainnet, dan lolos **41 dari 41** pemeriksaan
 | Akun program | [CmSHpw9Q…w8D79Z8jjhWmPJfFB](https://explorer.solana.com/address/CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB) |
 | Transaksi deploy | [vZRdesXg…2xWPk9Cv6](https://explorer.solana.com/tx/vZRdesXgmPhV15JwAHy5akzcsn5AWssFYGne5mCcbEcDqJufqxwZWzwSUXHbUoNKBEzaMaryR1h2kB2xWPk9Cv6) |
 | Transaksi upgrade (perbaikan temuan #1, 2026-10-05) | [3TKdDeWE…B5gChVbH](https://explorer.solana.com/tx/3TKdDeWEeKgsBA5skKqYHnzE8zkFDuUA54j7szYbx4Ejaarx2ZFyGBNkV7S5u5gQ18RQTwLM5DA6tQS2B5gChVbH) |
-| Upgrade authority | [42azYTNi…4xQAtEPfUe](https://explorer.solana.com/address/42azYTNiC4bp6UtXXpEQ49adNWBbM6Hhx84xQAtEPfUe), satu kunci |
+| Upgrade authority | [Squads multisig 2-of-3](https://explorer.solana.com/address/Hb21KhMoKXynxK4tj35UKqnxx6acuyQN3Leu5qQRSCrz) (vault [`DtMehAZM…kXznrXVX`](https://explorer.solana.com/address/DtMehAZMH67R9QZxnrCAAzy5DmuZGTVdt3ckkXznrXVX)), pindah dari satu kunci 42azYTNi…EPfUe pada 2026-10-17 |
 | Hash binary | `sha256 6a88a6d02bb2e41151340c7283890d2130a2e8d85c7dcce810f7d8b4c0ffb4f5` (9.272 byte; akun program 9.296 byte, sisanya padding nol). Dicocokkan dengan build lokal dari source ini setelah upgrade 2026-10-05. |
 
 Perintah untuk memverifikasi sendiri ada di bagian [On-Chain Proof](#on-chain-proof).
@@ -1087,7 +1087,7 @@ Kebijakan pelaporan: [SECURITY.md](SECURITY.md).
   dapat mencatat pesanan tersebut lagi.
 - **Kontrol Akses & Tata Kelola:** Tidak ada akun admin aplikasi, tidak ada tombol
   jeda. Satu-satunya biaya adalah 1% saat release, tertulis di source program (`FEE_BPS = 100`). Namun, program masih dapat di-upgrade
-  di mainnet lewat satu kunci (`42azYTNi…EPfUe`), dengan rencana migrasi ke Squads multisig sebelum volume besar.
+  di mainnet; sejak 2026-10-17 upgrade butuh 2 dari 3 penanda tangan di Squads multisig (`Hb21KhMo…6SCrz`). Upgrade sebelumnya memakai satu kunci `42azYTNi…EPfUe`.
 - **Status Audit:** Telah dilakukan self-review baris-per-baris dan uji serangan komprehensif;
   belum ada audit independen pihak ketiga. Keterbukaan lengkap dicantumkan di [SECURITY.md](SECURITY.md) dan
   [docs/INTERNAL_SECURITY_AUDIT.md](docs/INTERNAL_SECURITY_AUDIT.md).
@@ -1118,7 +1118,7 @@ berisi iterasi pertama proyek ini dan sudah digantikan oleh `program/` dan
 | --- | --- |
 | Sep 2026 | Program di mainnet (awalnya untuk komisi afiliasi) |
 | Okt 2026 | Holdback x402 live: endpoint 402 publik, Panta sebagai tool berbayar pertama, Solami RPC, satu siklus penuh di mainnet; submisi Colosseum |
-| Q4 2026 | Audit pihak ketiga; upgrade authority ke Squads multisig; relayer dan keeper jalan 24/7 |
+| Q4 2026 | Audit pihak ketiga; relayer dan keeper jalan 24/7 |
 | Q1 2027 | Lebih banyak tool berbayar; SDK agar penjual x402 mana pun bisa memberi bagian ke router; agen luar pertama |
 | 2027 | Relayer terbuka; pasar untuk klaim router yang tertunda |
 

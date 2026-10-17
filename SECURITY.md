@@ -65,10 +65,11 @@ off-chain orders, so the brand's attestor is trusted to report real, paid sales.
 | | |
 | --- | --- |
 | Program | `CmSHpw9QTwvRSNCCBrQz275ESTCw8D79Z8jjhWmPJfFB` (mainnet) |
-| Upgrade authority | `42azYTNiC4bp6UtXXpEQ49adNWBbM6Hhx84xQAtEPfUe`, a single key |
+| Upgrade authority | Squads v4 2-of-3 multisig `Hb21KhMoKXynxK4tj35UKqnxx6acuyQN3Leu5qQRSCrz`, vault `DtMehAZMH67R9QZxnrCAAzy5DmuZGTVdt3ckkXznrXVX` (since 2026-10-17; before that the single key `42azYTNiC4bp6UtXXpEQ49adNWBbM6Hhx84xQAtEPfUe`) |
 | Application admin | none: no pause switch and no admin instruction |
 | Fee | 1% of each payout, taken at release and sent to the treasury's USDC account (`FEE_BPS = 100` in the program source) |
 
-The program is upgradeable. Moving the upgrade authority to a multisig is a
-separate operational step from the program's own authorization rules and has
-not happened yet.
+The program is upgradeable. On 2026-10-17 the upgrade authority moved to a
+Squads v4 multisig: an upgrade now needs 2 of 3 member signatures (time lock 0,
+no config authority). The deployed binary did not change (sha256 6a88a6d0…,
+slot 453575531).
