@@ -16,11 +16,11 @@ const en = {
     theme: "Switch theme",
   },
   hero: {
-    kicker: "Affiliate payouts, settled on Solana",
-    title: "Commissions that pay themselves.",
-    sub: "A brand locks a USDC budget. Each sale a creator sends reserves their cut on-chain, where the brand can no longer spend it. When the refund window closes, anyone can trigger the payout. And if waiting doesn't suit you, a pending commission can be sold for cash today.",
-    ctaBrand: "Start a campaign",
-    ctaCreator: "I'm a creator",
+    kicker: "x402 on Solana",
+    title: "USDC holdback for machine payments.",
+    sub: "Lock the router's cut until the paid call is final. An agent pays a tool over HTTP 402, the router that referred it earns a USDC cut, and that cut stays locked on-chain until the refund window closes. First users are agents. Humans are not in this loop.",
+    ctaBrand: "Pay as an agent",
+    ctaCreator: "Watch live holdbacks",
     note: "Non-custodial and open source. Every rule on this page is enforced by a program on Solana mainnet.",
   },
   flow: {

@@ -1,0 +1,8 @@
+{
+  "TOOL_TREASURY": "keys/tool-treasury.keypair.json",
+  "RELAYER": "keys/relayer.keypair.json",
+  "ROUTER": "keys/router.keypair.json",
+  "CALLER": "keys/caller.keypair.json",
+  "BUYER_DESK": "keys/buyer-desk.keypair.json",
+  "KEEPER": "keys/keeper.keypair.json"
+}

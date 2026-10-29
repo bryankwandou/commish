@@ -55,11 +55,11 @@ export function Hero() {
             {t.hero.sub}
           </motion.p>
           <motion.div initial={reduce ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }} className="mt-8 flex flex-wrap gap-3">
-            <Link href={`/${lang}/brand`} className="group inline-flex h-11 items-center gap-2 rounded-xl bg-paid px-5 text-sm font-semibold text-ink transition hover:brightness-110">
+            <Link href={lang === "en" ? "/en/agent" : `/${lang}/brand`} className="group inline-flex h-11 items-center gap-2 rounded-xl bg-paid px-5 text-sm font-semibold text-ink transition hover:brightness-110">
               {t.hero.ctaBrand}
               <ArrowRight size={16} className="transition group-hover:translate-x-0.5" />
             </Link>
-            <Link href={`/${lang}/creator`} className="inline-flex h-11 items-center gap-2 rounded-xl border border-line bg-surface/60 px-5 text-sm font-medium transition hover:border-line-strong">
+            <Link href={lang === "en" ? "/en/live" : `/${lang}/creator`} className="inline-flex h-11 items-center gap-2 rounded-xl border border-line bg-surface/60 px-5 text-sm font-medium transition hover:border-line-strong">
               {t.hero.ctaCreator}
             </Link>
           </motion.div>
